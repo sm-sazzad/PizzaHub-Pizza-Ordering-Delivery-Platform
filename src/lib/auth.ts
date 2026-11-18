@@ -8,7 +8,7 @@ const uri =
   "mongodb://localhost:27017/pizzahub";
 
 const client = new MongoClient(uri);
-const db = client.db();
+const db = client.db("PizzaHub");
 
 export const auth = betterAuth({
   database: mongodbAdapter(db),

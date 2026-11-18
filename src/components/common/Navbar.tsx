@@ -13,16 +13,14 @@ import {
   LogOutIcon,
   MenuIcon,
   CloseIcon,
-  SparklesIcon,
 } from "@/components/ui/Icons";
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
-  const { user, isLoggedIn, logout, loginAs } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [demoSwitchOpen, setDemoSwitchOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState(pathname);
 
   // Close menus when route changes
@@ -156,69 +154,6 @@ export const Navbar: React.FC = () => {
 
           {/* Right Action Bar */}
           <div className="flex items-center gap-3">
-            {/* Quick Role Tester (Super convenient for grading and testing role switches immediately) */}
-            <div className="relative">
-              <button
-                onClick={() => setDemoSwitchOpen(!demoSwitchOpen)}
-                className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-stone-100 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:border-amber-500/50 transition-colors"
-                title="Quick Role Simulator for Evaluation"
-              >
-                <SparklesIcon size={14} className="text-amber-500" />
-                <span>
-                  Role: <strong className="capitalize">{user ? user.role : "Guest"}</strong>
-                </span>
-                <ChevronDownIcon size={12} />
-              </button>
-
-              {demoSwitchOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-xl p-2 z-50">
-                  <div className="text-[11px] font-semibold text-stone-400 px-3 py-1 uppercase tracking-wider">
-                    Instant Role Switch
-                  </div>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setDemoSwitchOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-xs rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 font-medium text-stone-700 dark:text-stone-200 flex items-center justify-between"
-                  >
-                    <span>Logged Out (Guest)</span>
-                    {!user && <span className="text-emerald-500 text-xs">Active</span>}
-                  </button>
-                  <button
-                    onClick={() => {
-                      loginAs("customer");
-                      setDemoSwitchOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-xs rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 font-medium text-stone-700 dark:text-stone-200 flex items-center justify-between"
-                  >
-                    <span>Customer (Alex)</span>
-                    {user?.role === "customer" && <span className="text-emerald-500 text-xs">Active</span>}
-                  </button>
-                  <button
-                    onClick={() => {
-                      loginAs("vendor");
-                      setDemoSwitchOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-xs rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 font-medium text-stone-700 dark:text-stone-200 flex items-center justify-between"
-                  >
-                    <span>Vendor (Luigi Pizzeria)</span>
-                    {user?.role === "vendor" && <span className="text-emerald-500 text-xs">Active</span>}
-                  </button>
-                  <button
-                    onClick={() => {
-                      loginAs("admin");
-                      setDemoSwitchOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-xs rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 font-medium text-stone-700 dark:text-stone-200 flex items-center justify-between"
-                  >
-                    <span>Admin (Sarah)</span>
-                    {user?.role === "admin" && <span className="text-emerald-500 text-xs">Active</span>}
-                  </button>
-                </div>
-              )}
-            </div>
-
             {/* Auth State Conditional UI */}
             {isLoggedIn && user ? (
               /* Logged In: Profile Dropdown */
@@ -228,20 +163,23 @@ export const Navbar: React.FC = () => {
                   className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors focus:outline-none border border-transparent hover:border-stone-200 dark:hover:border-stone-700"
                   aria-expanded={dropdownOpen}
                 >
-                  <div className="relative w-10 h-10 rounded-full overflow-hidden bg-stone-200 ring-2 ring-red-500/20">
-                    {user.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={user.image}
-                        alt={user.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-red-100 text-red-600 font-bold">
-                        {user.name.charAt(0)}
-                      </div>
-                    )}
-                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white" />
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-200 ring-2 ring-red-500/20">
+                      {user.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={user.image}
+                          alt={user.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-red-100 text-red-600 font-bold">
+                          {user.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    {/* Active online green dot positioned outside overflow-hidden */}
+                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-stone-900 shadow-xs" />
                   </div>
                   <div className="hidden sm:flex flex-col text-left">
                     <span className="text-xs font-bold text-stone-800 dark:text-stone-200 max-w-[120px] truncate">

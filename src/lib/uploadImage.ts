@@ -3,7 +3,7 @@
  * Reusable across Sign Up, Vendor Add Menu Item, and Profile updates.
  */
 export async function uploadToImgBB(file: File): Promise<string> {
-  const apiKey = process.env.IMGBB_API_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
 
   if (!apiKey) {
     throw new Error(
