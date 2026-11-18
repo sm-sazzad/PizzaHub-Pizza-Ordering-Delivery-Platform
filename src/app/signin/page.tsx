@@ -18,7 +18,7 @@ import {
 
 export default function SignInPage() {
   const router = useRouter();
-  const { refreshSession, loginAs } = useAuth();
+  const { refreshSession } = useAuth();
   const toast = useToast();
 
   const [email, setEmail] = useState("");
@@ -54,21 +54,9 @@ export default function SignInPage() {
       setTimeout(() => {
         router.push("/dashboard");
       }, 700);
-    } catch {
-      // In development or when offline, fallback to graceful demo login
-      if (email.includes("vendor") || email.includes("luigi")) {
-        loginAs("vendor");
-        toast.success("Welcome Luigi! Redirecting to Vendor Dashboard...", "Vendor Signed In");
-        setTimeout(() => router.push("/dashboard"), 800);
-      } else if (email.includes("admin")) {
-        loginAs("admin");
-        toast.success("Welcome Sarah! Redirecting to Admin Dashboard...", "Admin Signed In");
-        setTimeout(() => router.push("/dashboard"), 800);
-      } else {
-        loginAs("customer");
-        toast.success("Welcome Alex! Redirecting to PizzaHub...", "Signed In");
-        setTimeout(() => router.push("/"), 800);
-      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to sign in. Please try again.";
+      toast.error(errorMsg, "Sign In Error");
     } finally {
       setIsLoading(false);
     }

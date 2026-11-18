@@ -28,7 +28,7 @@ function SignUpForm() {
   const initialRoleParam = searchParams.get("role");
   const defaultRole = initialRoleParam === "vendor" ? "vendor" : "customer";
 
-  const { refreshSession, loginAs } = useAuth();
+  const { refreshSession } = useAuth();
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -148,13 +148,10 @@ function SignUpForm() {
           router.push("/");
         }
       }, 800);
-    } catch {
-      // Offline / development fallback
-      loginAs(role);
-      toast.success(`Welcome ${name}! Setting up your ${role} account...`, "Account Created");
-      setTimeout(() => {
-        router.push(role === "vendor" ? "/dashboard" : "/");
-      }, 900);
+    } catch (err) {
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to create account. Please try again.";
+      toast.error(errorMsg, "Sign Up Error");
     } finally {
       setIsLoading(false);
     }
