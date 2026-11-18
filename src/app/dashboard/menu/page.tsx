@@ -4,7 +4,12 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
-import { PizzaIcon, PlusCircleIcon, SparklesIcon } from "@/components/ui/Icons";
+import {
+  PizzaIcon,
+  PlusCircleIcon,
+  SparklesIcon,
+  AlertCircleIcon,
+} from "@/components/ui/Icons";
 
 interface MenuItem {
   id: string;
@@ -24,6 +29,13 @@ export default function MyMenuItemsPage() {
   // Real items state - starts empty until fetched from MongoDB / Express backend
   const [items, setItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Confirmation dialog state for item deletion
+  const [itemToDelete, setItemToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchVendorMenuItems = async () => {
@@ -91,28 +103,49 @@ export default function MyMenuItemsPage() {
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}" from your menu?`)) {
-      return;
-    }
+  // Confirm and execute item deletion from backend
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
 
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${serverUrl}/menu/${id}`, {
+      await fetch(`${serverUrl}/menu/${itemToDelete.id}`, {
         method: "DELETE",
       });
-    } catch {
-      // Ignored for graceful local fallback
+    } catch (error) {
+      console.error("Delete menu item error:", error);
     }
 
-    setItems((prev) => prev.filter((i) => i.id !== id));
-    toast.success(`"${name}" was removed from your menu.`, "Item Deleted");
+    setItems((prev) => prev.filter((i) => i.id !== itemToDelete.id));
+    toast.success(
+      `"${itemToDelete.name}" was removed from your menu.`,
+      "Item Deleted",
+    );
+    setIsDeleting(false);
+    setItemToDelete(null); // Close the confirmation box
   };
 
   const handleToggleAvailability = async (id: string) => {
     const current = items.find((i) => i.id === id);
     if (!current) return;
+    // Only approved or inactive items can be toggled
+    if (current.status === "pending") {
+      toast.warning(
+        "This item is awaiting admin approval before it can be activated.",
+        "Pending Approval",
+      );
+      return;
+    }
+
+    if (current.status === "rejected") {
+      toast.error(
+        "This item was rejected by an admin and cannot be activated.",
+        "Action Not Allowed",
+      );
+      return;
+    }
     const nextStatus = current.status === "inactive" ? "approved" : "inactive";
 
     try {
@@ -130,7 +163,12 @@ export default function MyMenuItemsPage() {
     setItems((prev) =>
       prev.map((i) => (i.id === id ? { ...i, status: nextStatus } : i)),
     );
-    toast.info(`Updated status to ${nextStatus}.`, "Status Changed");
+    toast.success(
+      nextStatus === "approved"
+        ? `"${current.name}" is now available to order.`
+        : `"${current.name}" has been marked as inactive.`,
+      "Status Updated",
+    );
   };
 
   const activeCount = items.filter((i) => i.status === "approved").length;
@@ -257,15 +295,17 @@ export default function MyMenuItemsPage() {
                   <button
                     type="button"
                     onClick={() => handleToggleAvailability(item.id)}
-                    className="px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                    className={`${item.status === "pending" ? "cursor-not-allowed" : "cursor-pointer"} px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors`}
                   >
                     {item.status === "inactive" ? "Activate" : "Deactivate"}
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => handleDelete(item.id, item.name)}
-                    className="px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/40 text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    onClick={() =>
+                      setItemToDelete({ id: item.id, name: item.name })
+                    }
+                    className="px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/40 text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                   >
                     Delete
                   </button>
@@ -299,6 +339,52 @@ export default function MyMenuItemsPage() {
           >
             View Plans
           </Link>
+        </div>
+      )}
+
+      {/* Delete Confirmation Box / Modal */}
+      {itemToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-6 sm:p-7 shadow-2xl space-y-5 text-center">
+            {/* Warning Icon */}
+            <div className="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950/40 text-red-600 flex items-center justify-center mx-auto">
+              <AlertCircleIcon size={30} />
+            </div>
+
+            {/* Dialog Text */}
+            <div className="space-y-1.5">
+              <h3 className="font-heading text-lg font-bold text-stone-900 dark:text-white">
+                Delete Menu Item?
+              </h3>
+              <p className="text-xs text-stone-500 leading-relaxed">
+                Are you sure you want to delete{" "}
+                <strong className="text-stone-800 dark:text-stone-200">
+                  &ldquo;{itemToDelete.name}&rdquo;
+                </strong>
+                ? This recipe will be permanently removed from your menu.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setItemToDelete(null)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={confirmDelete}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? "Deleting..." : "Yes, Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
