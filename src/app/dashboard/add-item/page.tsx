@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -44,11 +44,32 @@ export default function AddMenuItemPage() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Free Plan Check (PDF Page 7: Free plan max 3 active items)
-  const isFreePlan = user?.subscriptionPlan !== "premium";
-  // Assuming 2 items already published for this demo vendor
-  const currentActiveItemsCount = 2;
-  const isAtFreeLimit = isFreePlan && currentActiveItemsCount >= 3;
+  // Number of menu items already created by this vendor
+  const [existingItemsCount, setExistingItemsCount] = useState<number>(0);
+  const isPremium = user?.subscriptionPlan === "premium";
+
+  // Fetch current menu items count on component mount
+  useEffect(() => {
+    const fetchExistingItems = async () => {
+      if (!user?.email) return;
+      try {
+        const serverUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const res = await fetch(
+          `${serverUrl}/menu?vendorEmail=${encodeURIComponent(user.email)}`,
+        );
+        if (res.ok) {
+          const data = await res.json();
+          const items = Array.isArray(data) ? data : data.items || [];
+          setExistingItemsCount(items.length);
+        }
+      } catch {
+        // Fallback default is 0 if server is offline
+      }
+    };
+
+    fetchExistingItems();
+  }, [user?.email]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,6 +103,20 @@ export default function AddMenuItemPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 1. Check vendor subscription plan
+    const isPremiumPlan = user?.subscriptionPlan === "premium";
+
+    // 2. If vendor is on free plan and already has 3 or more items, redirect to subscription
+    if (!isPremiumPlan && existingItemsCount >= 3) {
+      toast.warning(
+        "Free plan allows a maximum of 3 items. Please upgrade to premium to add more items.",
+        "Free Plan Limit Reached",
+      );
+      router.push("/dashboard/subscription");
+      return;
+    }
+
+    // 3. Validate required form fields
     if (!itemName.trim() || !description.trim() || !price || !location.trim()) {
       toast.error(
         "Please fill in all required menu item fields.",
@@ -100,36 +135,28 @@ export default function AddMenuItemPage() {
     }
 
     if (!imageFile) {
-      toast.error(
-        "Please upload a photo for the menu item.",
-        "Image Required",
-      );
-      return;
-    }
-
-    if (isAtFreeLimit) {
-      toast.error(
-        "You have reached the Free Plan limit of 3 active items. Please upgrade to Premium.",
-        "Free Plan Limit",
-      );
+      toast.error("Please upload a photo for the menu item.", "Image Required");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // 1. Upload menu item image
+      // 4. Upload menu item image
       let hostedImageUrl = "";
       try {
         hostedImageUrl = await uploadToImgBB(imageFile);
       } catch (uploadError) {
         console.warn("Image upload failed:", uploadError);
-        toast.error("Failed to upload image. Please try again.", "Upload Error");
+        toast.error(
+          "Failed to upload image. Please try again.",
+          "Upload Error",
+        );
         setIsLoading(false);
         return;
       }
 
-      // 2. Prepare payload matching PDF specification (Page 7 & 10)
+      // 5. Prepare payload matching PDF specification
       const menuPayload = {
         vendorId: user?.id || "vend-01",
         vendorName:
@@ -141,13 +168,14 @@ export default function AddMenuItemPage() {
         price: parsedPrice,
         location: location.trim(),
         images: [hostedImageUrl],
-        status: "pending", // Default status Pending until admin approves (PDF Page 7)
+        status: "pending", // Default status Pending until admin approves
         createdAt: new Date().toISOString(),
       };
 
-      // 3. POST to http://localhost:5000/menu (configured per user prompt)
-      const targetApiUrl =
-        process.env.NEXT_PUBLIC_SERVER_MENU_API || "http://localhost:5000/menu";
+      // 6. POST to Express backend API
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const targetApiUrl = `${baseUrl}/menu`;
 
       const res = await fetch(targetApiUrl, {
         method: "POST",
@@ -169,6 +197,9 @@ export default function AddMenuItemPage() {
         "Menu Item Added",
       );
 
+      // Increment local count
+      setExistingItemsCount((prev) => prev + 1);
+
       // Reset form
       setItemName("");
       setDescription("");
@@ -179,13 +210,11 @@ export default function AddMenuItemPage() {
       // Redirect to menu list
       setTimeout(() => {
         router.push("/dashboard/menu");
-      }, 1000);
-    } catch (err: unknown) {
-      console.warn("Server POST error:", err);
-      toast.error(
-        "Could not connect to backend server. Please try again later.",
-        "Submission Error",
-      );
+      }, 700);
+    } catch (err) {
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to add menu item.";
+      toast.error(errorMsg, "Submission Error");
     } finally {
       setIsLoading(false);
     }
@@ -223,7 +252,7 @@ export default function AddMenuItemPage() {
       </div>
 
       {/* Free Plan Capacity Warning Banner (PDF Page 7) */}
-      {isFreePlan && (
+      {!isPremium && (
         <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
@@ -231,7 +260,7 @@ export default function AddMenuItemPage() {
             </div>
             <div>
               <p className="text-xs font-bold text-amber-900 dark:text-amber-200">
-                Free Plan Allowance: 2 of 3 Active Items Used
+                Free Plan Allowance: {existingItemsCount} of 3 Items Used
               </p>
               <p className="text-[11px] text-amber-700 dark:text-amber-400">
                 Upgrade to Premium for unlimited active menu slots and homepage
@@ -451,8 +480,8 @@ export default function AddMenuItemPage() {
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isLoading || isAtFreeLimit}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-sm shadow-lg shadow-red-600/25 hover:shadow-xl hover:shadow-red-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={isLoading}
+              className="w-full py-4 px-6 rounded-2xl bg-linear-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-sm shadow-lg shadow-red-600/25 hover:shadow-xl hover:shadow-red-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <span>Publishing Item to Menu...</span>

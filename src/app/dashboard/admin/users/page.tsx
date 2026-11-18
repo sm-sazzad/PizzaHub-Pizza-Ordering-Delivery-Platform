@@ -28,7 +28,7 @@ export default function AdminUsersPage() {
       setIsLoading(true);
       try {
         const serverUrl =
-          process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(`${serverUrl}/admin/users`);
         if (res.ok) {
           const data = await res.json();
@@ -49,7 +49,7 @@ export default function AdminUsersPage() {
     const nextState = !isBlocked;
     try {
       const serverUrl =
-        process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/admin/users/${id}/block`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

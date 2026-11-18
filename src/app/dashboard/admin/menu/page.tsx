@@ -25,7 +25,7 @@ export default function AdminMenuPage() {
       setIsLoading(true);
       try {
         const serverUrl =
-          process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(`${serverUrl}/admin/menu`);
         if (res.ok) {
           const data = await res.json();
@@ -49,7 +49,7 @@ export default function AdminMenuPage() {
   ) => {
     try {
       const serverUrl =
-        process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/admin/menu/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

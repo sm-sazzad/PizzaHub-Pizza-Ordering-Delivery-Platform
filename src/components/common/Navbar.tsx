@@ -43,37 +43,6 @@ export const Navbar: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Role-based navigation links
-  const getRoleLinks = () => {
-    if (!user) return [];
-
-    switch (user.role) {
-      case "customer":
-        return [
-          { name: "Dashboard", href: "/dashboard" },
-          { name: "My Orders", href: "/dashboard/orders" },
-        ];
-      case "vendor":
-        return [
-          { name: "Dashboard", href: "/dashboard" },
-          { name: "My Menu", href: "/dashboard/menu" },
-          { name: "Add Item", href: "/dashboard/add-item" },
-          { name: "Orders", href: "/dashboard/vendor-orders" },
-        ];
-      case "admin":
-        return [
-          { name: "Dashboard", href: "/dashboard" },
-          { name: "Manage Users", href: "/dashboard/users" },
-          { name: "Manage Menu", href: "/dashboard/menu-items" },
-          { name: "Transactions", href: "/dashboard/transactions" },
-        ];
-      default:
-        return [];
-    }
-  };
-
-  const roleLinks = getRoleLinks();
-
   const getRoleBadgeStyle = (role: UserRole) => {
     switch (role) {
       case "admin":
@@ -135,21 +104,18 @@ export const Navbar: React.FC = () => {
               Browse Menu
             </Link>
 
-            {/* Dynamic Role Links */}
-            {isLoggedIn &&
-              roleLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={`px-3.5 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${
-                    pathname === link.href
-                      ? "text-red-600 bg-red-500/10"
-                      : "text-stone-700 dark:text-stone-300 hover:text-red-600 hover:bg-stone-100 dark:hover:bg-stone-800/60"
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
+            {isLoggedIn && (
+              <Link
+                href="/dashboard"
+                className={`px-3.5 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${
+                  pathname.startsWith("/dashboard")
+                    ? "text-red-600 bg-red-500/10"
+                    : "text-stone-700 dark:text-stone-300 hover:text-red-600 hover:bg-stone-100 dark:hover:bg-stone-800/60"
+                }`}
+              >
+                Dashboard
+              </Link>
+            )}
           </nav>
 
           {/* Right Action Bar */}
@@ -321,20 +287,19 @@ export const Navbar: React.FC = () => {
               Browse Menu
             </Link>
 
-            {isLoggedIn &&
-              roleLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={`px-3 py-2 text-base font-semibold rounded-xl ${
-                    pathname === link.href
-                      ? "bg-red-50 dark:bg-red-950/30 text-red-600"
-                      : "text-stone-800 dark:text-stone-200"
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
+            {isLoggedIn && (
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-3 py-2 text-base font-semibold rounded-xl ${
+                  pathname.startsWith("/dashboard")
+                    ? "bg-red-50 dark:bg-red-950/30 text-red-600"
+                    : "text-stone-800 dark:text-stone-200"
+                }`}
+              >
+                Dashboard
+              </Link>
+            )}
           </nav>
 
           {/* Mobile Auth Actions */}

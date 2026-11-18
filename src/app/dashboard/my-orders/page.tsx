@@ -44,7 +44,7 @@ export default function CustomerOrdersPage() {
       setIsLoading(true);
       try {
         const serverUrl =
-          process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(
           `${serverUrl}/orders/my-orders?email=${encodeURIComponent(user.email)}`,
         );
@@ -72,7 +72,7 @@ export default function CustomerOrdersPage() {
     setCancellingId(orderId);
     try {
       const serverUrl =
-        process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const res = await fetch(`${serverUrl}/orders/${orderId}/cancel`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

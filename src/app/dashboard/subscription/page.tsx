@@ -24,9 +24,9 @@ export default function SubscriptionPage() {
 
     try {
       // Endpoint for Stripe checkout session
-      const targetUrl =
-        process.env.NEXT_PUBLIC_SERVER_CHECKOUT_API ||
-        "http://localhost:5000/create-checkout-session";
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const targetUrl = `${baseUrl}/create-checkout-session`;
 
       const res = await fetch(targetUrl, {
         method: "POST",

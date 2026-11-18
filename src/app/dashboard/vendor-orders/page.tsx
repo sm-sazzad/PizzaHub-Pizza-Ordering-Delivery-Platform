@@ -39,7 +39,7 @@ export default function VendorOrdersPage() {
       setIsLoading(true);
       try {
         const serverUrl =
-          process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(
           `${serverUrl}/orders/vendor?email=${encodeURIComponent(user.email)}`,
         );
@@ -87,7 +87,7 @@ export default function VendorOrdersPage() {
   const handleAccept = async (id: string) => {
     try {
       const serverUrl =
-        process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/orders/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -106,7 +106,7 @@ export default function VendorOrdersPage() {
   const handleReject = async (id: string) => {
     try {
       const serverUrl =
-        process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/orders/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

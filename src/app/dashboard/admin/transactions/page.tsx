@@ -27,7 +27,7 @@ export default function AdminTransactionsPage() {
       setIsLoading(true);
       try {
         const serverUrl =
-          process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(`${serverUrl}/admin/transactions`);
         if (res.ok) {
           const data = await res.json();

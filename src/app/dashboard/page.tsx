@@ -48,7 +48,7 @@ function CustomerOverview({
       setIsLoading(true);
       try {
         const serverUrl =
-          process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(
           `${serverUrl}/orders/my-orders?email=${encodeURIComponent(user.email)}`,
         );
@@ -292,7 +292,7 @@ function VendorOverview({
       setIsLoading(true);
       try {
         const serverUrl =
-          process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const [menuRes, ordersRes] = await Promise.all([
           fetch(
             `${serverUrl}/menu?vendorEmail=${encodeURIComponent(user.email)}`,

@@ -35,7 +35,7 @@ export default function MyMenuItemsPage() {
       setIsLoading(true);
       try {
         const serverUrl =
-          process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(
           `${serverUrl}/menu?vendorEmail=${encodeURIComponent(user.email)}`,
         );
@@ -100,7 +100,7 @@ export default function MyMenuItemsPage() {
 
     try {
       const serverUrl =
-        process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/menu/${id}`, {
         method: "DELETE",
       });
@@ -119,7 +119,7 @@ export default function MyMenuItemsPage() {
 
     try {
       const serverUrl =
-        process.env.NEXT_PUBLIC_SERVER_API_URL || "http://localhost:5000";
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/menu/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
