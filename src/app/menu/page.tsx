@@ -90,47 +90,59 @@ export default function BrowseMenuPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white dark:bg-stone-900 p-4 sm:p-6 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
-        {/* Search by Name */}
-        <div className="relative w-full sm:w-72">
-          <SearchIcon
-            size={18}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
-          />
-          <input
-            type="text"
-            placeholder="Search pizza..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:border-red-500"
-          />
-        </div>
-
-        {/* Filter Controls: Category & Price Sort */}
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          {/* Category Dropdown */}
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-semibold text-stone-700 dark:text-stone-300 focus:outline-none"
-          >
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+      <div className="bg-white dark:bg-stone-900 p-5 sm:p-6 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm space-y-4">
+        {/* Top Row: Search Input & Sort Dropdown */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          {/* Search by Name */}
+          <div className="relative w-full sm:max-w-md">
+            <SearchIcon
+              size={18}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
+            />
+            <input
+              type="text"
+              placeholder="Search pizza by name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:border-red-500"
+            />
+          </div>
 
           {/* Sort By Price Dropdown */}
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-semibold text-stone-700 dark:text-stone-300 focus:outline-none"
-          >
-            <option value="default">Default Sort</option>
-            <option value="low-to-high">Price: Low to High</option>
-            <option value="high-to-low">Price: High to Low</option>
-          </select>
+          <div className="w-full sm:w-auto flex justify-end">
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="px-3.5 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-semibold text-stone-700 dark:text-stone-300 focus:outline-none cursor-pointer"
+            >
+              <option value="default">Default Sort</option>
+              <option value="low-to-high">Price: Low to High</option>
+              <option value="high-to-low">Price: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Category Buttons Below Search Field */}
+        <div className="pt-2 border-t border-stone-100 dark:border-stone-800">
+          <div className="flex flex-wrap items-center gap-2">
+            {CATEGORIES.map((cat) => {
+              const isSelected = selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                    isSelected
+                      ? "bg-red-600 text-white shadow-md shadow-red-600/20"
+                      : "bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700"
+                  }`}
+                >
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 

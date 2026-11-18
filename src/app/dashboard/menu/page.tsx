@@ -4,11 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
-import {
-  PizzaIcon,
-  PlusCircleIcon,
-  SparklesIcon,
-} from "@/components/ui/Icons";
+import { PizzaIcon, PlusCircleIcon, SparklesIcon } from "@/components/ui/Icons";
 
 interface MenuItem {
   id: string;
@@ -43,31 +39,33 @@ export default function MyMenuItemsPage() {
           const data = await res.json();
           const list = Array.isArray(data) ? data : data.items || [];
           setItems(
-            list.map((it: {
-              _id?: string;
-              id?: string;
-              itemName?: string;
-              name?: string;
-              category?: string;
-              price?: number;
-              location?: string;
-              images?: string[];
-              image?: string;
-              status?: MenuItem["status"];
-              createdAt?: string;
-            }) => ({
-              id: it._id || it.id || "",
-              name: it.itemName || it.name || "Artisan Pizza",
-              category: it.category || "Classic Pizzas",
-              price: typeof it.price === "number" ? it.price : 0,
-              location: it.location || "Kitchen",
-              image:
-                it.images?.[0] ||
-                it.image ||
-                "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80",
-              status: it.status || "pending",
-              createdAt: it.createdAt || new Date().toISOString(),
-            })),
+            list.map(
+              (it: {
+                _id?: string;
+                id?: string;
+                itemName?: string;
+                name?: string;
+                category?: string;
+                price?: number;
+                location?: string;
+                images?: string[];
+                image?: string;
+                status?: MenuItem["status"];
+                createdAt?: string;
+              }) => ({
+                id: it._id || it.id || "",
+                name: it.itemName || it.name || "Artisan Pizza",
+                category: it.category || "Classic Pizzas",
+                price: typeof it.price === "number" ? it.price : 0,
+                location: it.location || "Kitchen",
+                image:
+                  it.images?.[0] ||
+                  it.image ||
+                  "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80",
+                status: it.status || "pending",
+                createdAt: it.createdAt || new Date().toISOString(),
+              }),
+            ),
           );
         }
       } catch {
@@ -156,7 +154,8 @@ export default function MyMenuItemsPage() {
             My Menu Items
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-            Manage your published pizzas, update active availability, or add new artisan recipes.
+            Manage your published pizzas, update active availability, or add new
+            artisan recipes.
           </p>
         </div>
 
@@ -202,7 +201,9 @@ export default function MyMenuItemsPage() {
               No Menu Items Published Yet
             </h4>
             <p className="text-xs text-stone-500 max-w-sm mb-6 leading-relaxed">
-              Your kitchen doesn&apos;t have any pizza items listed yet. Add your artisan crust recipes and let hungry customers find your kitchen!
+              Your kitchen doesn&apos;t have any pizza items listed yet. Add
+              your artisan crust recipes and let hungry customers find your
+              kitchen!
             </p>
             <Link
               href="/dashboard/add-item"
@@ -287,7 +288,8 @@ export default function MyMenuItemsPage() {
                 Need to publish unlimited pizzas?
               </h4>
               <p className="text-xs text-stone-400">
-                Upgrade to the Premium Vendor Plan for unlimited listings and top homepage placement.
+                Upgrade to the Premium Vendor Plan for unlimited listings and
+                top homepage placement.
               </p>
             </div>
           </div>
