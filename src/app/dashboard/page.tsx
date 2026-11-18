@@ -309,9 +309,7 @@ function VendorOverview({
 
         if (menuRes.ok) {
           const menuData = await menuRes.json();
-          const items = Array.isArray(menuData)
-            ? menuData
-            : menuData.items || [];
+          const items = menuData;
           totalItems = items.length;
           activeItems = items.filter(
             (i: { status: string }) => i.status === "approved",
@@ -320,9 +318,7 @@ function VendorOverview({
 
         if (ordersRes.ok) {
           const ordersData = await ordersRes.json();
-          const orders = Array.isArray(ordersData)
-            ? ordersData
-            : ordersData.orders || [];
+          const orders = ordersData;
           pending = orders.filter(
             (o: { status: string }) => o.status === "pending",
           ).length;
@@ -454,9 +450,6 @@ function VendorOverview({
           <div className="flex items-baseline gap-1">
             <span className="text-3xl font-black text-emerald-600 font-heading">
               {stats.activeMenuItems}
-            </span>
-            <span className="text-xs text-stone-400">
-              / {isFreePlan ? "3 limit" : "unlimited"}
             </span>
           </div>
           <span className="text-[11px] text-stone-400 mt-1">
