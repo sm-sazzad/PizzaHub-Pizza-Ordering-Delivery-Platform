@@ -104,17 +104,13 @@ function SignUpForm() {
 
     let hostedImageUrl = "";
 
-    // 1. Upload file to ImgBB if selected (silent background upload)
+    // 1. Upload file if selected (silent background upload)
     if (imageFile) {
       try {
         hostedImageUrl = await uploadToImgBB(imageFile);
       } catch (uploadError) {
-        console.warn("ImgBB upload failed:", uploadError);
-        const errMsg =
-          uploadError instanceof Error
-            ? uploadError.message
-            : "Failed to upload image. Please verify your NEXT_PUBLIC_IMGBB_API_KEY in .env.";
-        toast.error(errMsg, "Image Upload Error");
+        console.warn("Image upload failed:", uploadError);
+        toast.error("Failed to upload image. Please try again.", "Image Upload Error");
         setIsLoading(false);
         return;
       }
@@ -428,10 +424,10 @@ function SignUpForm() {
               </div>
             </div>
 
-            {/* Profile Image File Upload to ImgBB */}
+            {/* Profile Image File Upload */}
             <div className="space-y-1.5 pt-1">
               <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
-                Profile Image <span className="text-stone-400 font-normal">(File upload to ImgBB)</span>
+                Profile Image <span className="text-stone-400 font-normal">(Optional)</span>
               </label>
 
               {/* Hidden file input */}
@@ -460,7 +456,7 @@ function SignUpForm() {
                       {imageFile?.name}
                     </p>
                     <p className="text-[11px] text-stone-500">
-                      {imageFile && (imageFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for ImgBB upload
+                      {imageFile && (imageFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for upload
                     </p>
                   </div>
                   <button
