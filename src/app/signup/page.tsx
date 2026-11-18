@@ -18,7 +18,6 @@ import {
   GoogleIcon,
   CheckIcon,
   StoreIcon,
-  UploadIcon,
   CameraIcon,
   CloseIcon,
 } from "@/components/ui/Icons";
@@ -44,7 +43,6 @@ function SignUpForm() {
   // Image upload states
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [uploadingImg, setUploadingImg] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -71,7 +69,6 @@ function SignUpForm() {
 
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
-    toast.info("Photo selected! It will upload to ImgBB upon submission.", "Photo Ready");
   };
 
   const handleRemoveImage = () => {
@@ -107,24 +104,19 @@ function SignUpForm() {
 
     let hostedImageUrl = "";
 
-    // 1. Upload file to ImgBB if selected
+    // 1. Upload file to ImgBB if selected (silent background upload)
     if (imageFile) {
       try {
-        setUploadingImg(true);
         hostedImageUrl = await uploadToImgBB(imageFile);
-        toast.success("Profile photo uploaded to ImgBB!", "Image Uploaded");
       } catch (uploadError) {
         console.warn("ImgBB upload failed:", uploadError);
         const errMsg =
           uploadError instanceof Error
             ? uploadError.message
-            : "Failed to upload image to ImgBB. Please verify your NEXT_PUBLIC_IMGBB_API_KEY in .env.";
-        toast.error(errMsg, "ImgBB Upload Error");
+            : "Failed to upload image. Please verify your NEXT_PUBLIC_IMGBB_API_KEY in .env.";
+        toast.error(errMsg, "Image Upload Error");
         setIsLoading(false);
-        setUploadingImg(false);
         return;
-      } finally {
-        setUploadingImg(false);
       }
     }
 
@@ -502,16 +494,11 @@ function SignUpForm() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading || uploadingImg}
-              className="w-full mt-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-sm shadow-lg shadow-red-600/25 hover:shadow-xl hover:shadow-red-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2"
+              disabled={isLoading}
+              className="w-full mt-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-sm shadow-lg shadow-red-600/25 hover:shadow-xl hover:shadow-red-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed"
             >
-              {uploadingImg ? (
-                <span className="flex items-center gap-2">
-                  <UploadIcon size={16} className="animate-bounce" />
-                  <span>Uploading Photo to ImgBB...</span>
-                </span>
-              ) : isLoading ? (
-                <span>Registering Account...</span>
+              {isLoading ? (
+                <span>Creating Account...</span>
               ) : (
                 <>
                   <span>Create Account as {role === "vendor" ? "Vendor" : "Customer"}</span>
