@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
 import {
   PizzaIcon,
   MailIcon,
@@ -13,28 +14,23 @@ import {
   EyeOffIcon,
   ArrowRightIcon,
   GoogleIcon,
-  AlertCircleIcon,
-  CheckIcon,
 } from "@/components/ui/Icons";
 
 export default function SignInPage() {
   const router = useRouter();
   const { refreshSession, loginAs } = useAuth();
+  const toast = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg("");
-    setSuccessMsg("");
 
     if (!email.trim() || !password) {
-      setErrorMsg("Please enter both email and password.");
+      toast.error("Please enter both email and password.", "Required Fields");
       return;
     }
 
@@ -47,15 +43,14 @@ export default function SignInPage() {
       });
 
       if (res.error) {
-        setErrorMsg(res.error.message || "Invalid credentials. Please check and try again.");
+        toast.error(res.error.message || "Invalid email or password.", "Sign In Failed");
         setIsLoading(false);
         return;
       }
 
-      setSuccessMsg("Welcome back! Redirecting...");
+      toast.success("Welcome back! Redirecting to dashboard...", "Success");
       await refreshSession();
 
-      // Check demo credentials or fallback redirect
       setTimeout(() => {
         router.push("/dashboard");
       }, 700);
@@ -63,15 +58,15 @@ export default function SignInPage() {
       // In development or when offline, fallback to graceful demo login
       if (email.includes("vendor") || email.includes("luigi")) {
         loginAs("vendor");
-        setSuccessMsg("Welcome Luigi! Redirecting to Vendor Dashboard...");
+        toast.success("Welcome Luigi! Redirecting to Vendor Dashboard...", "Vendor Signed In");
         setTimeout(() => router.push("/dashboard"), 800);
       } else if (email.includes("admin")) {
         loginAs("admin");
-        setSuccessMsg("Welcome Admin Sarah! Redirecting to Admin Dashboard...");
+        toast.success("Welcome Sarah! Redirecting to Admin Dashboard...", "Admin Signed In");
         setTimeout(() => router.push("/dashboard"), 800);
       } else {
         loginAs("customer");
-        setSuccessMsg("Welcome Alex! Redirecting to PizzaHub...");
+        toast.success("Welcome Alex! Redirecting to PizzaHub...", "Signed In");
         setTimeout(() => router.push("/"), 800);
       }
     } finally {
@@ -80,7 +75,6 @@ export default function SignInPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    setErrorMsg("");
     setIsLoading(true);
     try {
       await signIn.social({
@@ -89,7 +83,7 @@ export default function SignInPage() {
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to connect to Google OAuth.";
-      setErrorMsg(message);
+      toast.error(message, "OAuth Error");
       setIsLoading(false);
     }
   };
@@ -120,21 +114,6 @@ export default function SignInPage() {
               Welcome back! Enjoy artisanal stone-baked pizzas or manage your kitchen.
             </p>
           </div>
-
-          {/* Error / Success Toast Messages */}
-          {errorMsg && (
-            <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold flex items-start gap-2.5 animate-in fade-in">
-              <AlertCircleIcon size={18} className="shrink-0 mt-0.5" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {successMsg && (
-            <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
-              <CheckIcon size={18} className="shrink-0" />
-              <span>{successMsg}</span>
-            </div>
-          )}
 
           {/* Google Sign In Button */}
           <button
@@ -251,6 +230,7 @@ export default function SignInPage() {
                 onClick={() => {
                   setEmail("alex@example.com");
                   setPassword("Customer123");
+                  toast.info("Customer credentials loaded into fields.", "Preset Loaded");
                 }}
                 className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800/80 text-[11px] font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-200 text-left truncate"
               >
@@ -261,6 +241,7 @@ export default function SignInPage() {
                 onClick={() => {
                   setEmail("luigi@woodfired.com");
                   setPassword("Vendor123");
+                  toast.info("Vendor credentials loaded into fields.", "Preset Loaded");
                 }}
                 className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800/80 text-[11px] font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-200 text-left truncate"
               >

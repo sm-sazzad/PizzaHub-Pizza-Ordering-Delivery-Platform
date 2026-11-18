@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signUp, signIn } from "@/lib/auth-client";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
 import { uploadToImgBB } from "@/lib/uploadImage";
 import {
   PizzaIcon,
@@ -15,7 +16,6 @@ import {
   EyeOffIcon,
   ArrowRightIcon,
   GoogleIcon,
-  AlertCircleIcon,
   CheckIcon,
   StoreIcon,
   UploadIcon,
@@ -30,6 +30,7 @@ function SignUpForm() {
   const defaultRole = initialRoleParam === "vendor" ? "vendor" : "customer";
 
   const { refreshSession, loginAs } = useAuth();
+  const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form states
@@ -46,8 +47,6 @@ function SignUpForm() {
   const [uploadingImg, setUploadingImg] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
 
   // Password rules validation (Assignment 9 requirement)
   const hasMinLength = password.length >= 6;
@@ -61,18 +60,18 @@ function SignUpForm() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setErrorMsg("Please select a valid image file (JPG, PNG, WebP).");
+      toast.error("Please select a valid image file (JPG, PNG, WebP).", "Invalid File");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setErrorMsg("Image size must be less than 5MB.");
+      toast.error("Image size must be less than 5MB.", "File Too Large");
       return;
     }
 
-    setErrorMsg("");
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
+    toast.info("Photo selected! It will upload to ImgBB upon submission.", "Photo Ready");
   };
 
   const handleRemoveImage = () => {
@@ -85,23 +84,22 @@ function SignUpForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg("");
-    setSuccessMsg("");
 
     if (!name.trim() || !email.trim() || !password) {
-      setErrorMsg("Please fill in all required fields.");
+      toast.error("Please fill in all required fields.", "Missing Fields");
       return;
     }
 
     if (!isPasswordValid) {
-      setErrorMsg(
-        "Password must be at least 6 characters long, with at least one uppercase letter and one lowercase letter."
+      toast.error(
+        "Password must be at least 6 characters with 1 uppercase and 1 lowercase letter.",
+        "Weak Password"
       );
       return;
     }
 
     if (role === "vendor" && !businessName.trim()) {
-      setErrorMsg("Please provide your Restaurant or Business name.");
+      toast.error("Please provide your Restaurant or Business name.", "Restaurant Name Required");
       return;
     }
 
@@ -114,14 +112,14 @@ function SignUpForm() {
       try {
         setUploadingImg(true);
         hostedImageUrl = await uploadToImgBB(imageFile);
+        toast.success("Profile photo uploaded to ImgBB!", "Image Uploaded");
       } catch (uploadError) {
-        // If API key is missing or network fails, report clearly
         console.warn("ImgBB upload failed:", uploadError);
         const errMsg =
           uploadError instanceof Error
             ? uploadError.message
             : "Failed to upload image to ImgBB. Please verify your NEXT_PUBLIC_IMGBB_API_KEY in .env.";
-        setErrorMsg(errMsg);
+        toast.error(errMsg, "ImgBB Upload Error");
         setIsLoading(false);
         setUploadingImg(false);
         return;
@@ -147,12 +145,12 @@ function SignUpForm() {
       });
 
       if (res.error) {
-        setErrorMsg(res.error.message || "Failed to create account. Please try again.");
+        toast.error(res.error.message || "Failed to create account.", "Registration Failed");
         setIsLoading(false);
         return;
       }
 
-      setSuccessMsg("Account created successfully with your profile photo! Redirecting...");
+      toast.success("Account created successfully! Redirecting...", "Registration Complete");
       await refreshSession();
 
       setTimeout(() => {
@@ -165,7 +163,7 @@ function SignUpForm() {
     } catch {
       // Offline / development fallback
       loginAs(role);
-      setSuccessMsg(`Welcome ${name}! Setting up your ${role} account...`);
+      toast.success(`Welcome ${name}! Setting up your ${role} account...`, "Account Created");
       setTimeout(() => {
         router.push(role === "vendor" ? "/dashboard" : "/");
       }, 900);
@@ -175,7 +173,6 @@ function SignUpForm() {
   };
 
   const handleGoogleSignUp = async () => {
-    setErrorMsg("");
     setIsLoading(true);
     try {
       await signIn.social({
@@ -184,7 +181,7 @@ function SignUpForm() {
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to connect to Google OAuth.";
-      setErrorMsg(message);
+      toast.error(message, "Google OAuth Error");
       setIsLoading(false);
     }
   };
@@ -281,21 +278,6 @@ function SignUpForm() {
               * Note: Admin accounts cannot be created via public registration.
             </p>
           </div>
-
-          {/* Error / Success Toast Messages */}
-          {errorMsg && (
-            <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold flex items-start gap-2.5 animate-in fade-in">
-              <AlertCircleIcon size={18} className="shrink-0 mt-0.5" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {successMsg && (
-            <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
-              <CheckIcon size={18} className="shrink-0" />
-              <span>{successMsg}</span>
-            </div>
-          )}
 
           {/* Google Sign Up Button */}
           <button
@@ -454,7 +436,7 @@ function SignUpForm() {
               </div>
             </div>
 
-            {/* Profile Image File Upload to ImgBB (Assignment 9 & User Request) */}
+            {/* Profile Image File Upload to ImgBB */}
             <div className="space-y-1.5 pt-1">
               <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
                 Profile Image <span className="text-stone-400 font-normal">(File upload to ImgBB)</span>
