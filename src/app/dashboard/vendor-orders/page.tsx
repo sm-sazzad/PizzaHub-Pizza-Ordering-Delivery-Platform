@@ -41,37 +41,40 @@ export default function VendorOrdersPage() {
         const serverUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(
-          `${serverUrl}/orders/vendor?email=${encodeURIComponent(user.email)}`,
+          `${serverUrl}/orders?email=${encodeURIComponent(user.email)}`,
         );
         if (res.ok) {
           const data = await res.json();
           const list = Array.isArray(data) ? data : data.orders || [];
           setOrders(
-            list.map((o: {
-              _id?: string;
-              id?: string;
-              customerName?: string;
-              customerEmail?: string;
-              itemName?: string;
-              price?: number;
-              itemPrice?: number;
-              deliveryDate?: string;
-              deliveryAddress?: string;
-              customerMessage?: string;
-              status?: Order["status"];
-              createdAt?: string;
-            }) => ({
-              id: o._id || o.id || "",
-              customerName: o.customerName || "Customer",
-              customerEmail: o.customerEmail || "",
-              itemName: o.itemName || "Artisan Pizza",
-              itemPrice: typeof o.itemPrice === "number" ? o.itemPrice : o.price || 0,
-              deliveryDate: o.deliveryDate || "ASAP",
-              deliveryAddress: o.deliveryAddress || "Address provided",
-              customerMessage: o.customerMessage,
-              status: o.status || "pending",
-              createdAt: o.createdAt || new Date().toISOString(),
-            })),
+            list.map(
+              (o: {
+                _id?: string;
+                id?: string;
+                customerName?: string;
+                customerEmail?: string;
+                itemName?: string;
+                price?: number;
+                itemPrice?: number;
+                deliveryDate?: string;
+                deliveryAddress?: string;
+                customerMessage?: string;
+                status?: Order["status"];
+                createdAt?: string;
+              }) => ({
+                id: o._id || o.id || "",
+                customerName: o.customerName || "Customer",
+                customerEmail: o.customerEmail || "",
+                itemName: o.itemName || "Artisan Pizza",
+                itemPrice:
+                  typeof o.itemPrice === "number" ? o.itemPrice : o.price || 0,
+                deliveryDate: o.deliveryDate || "ASAP",
+                deliveryAddress: o.deliveryAddress || "Address provided",
+                customerMessage: o.customerMessage,
+                status: o.status || "pending",
+                createdAt: o.createdAt || new Date().toISOString(),
+              }),
+            ),
           );
         }
       } catch {
@@ -88,11 +91,18 @@ export default function VendorOrdersPage() {
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${serverUrl}/orders/${id}/status`, {
+      const res = await fetch(`${serverUrl}/orders/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "accepted" }),
       });
+      const resdata = await res.json();
+      if (resdata.modifiedCount > 0) {
+        toast.success(
+          "Order accepted! Kitchen notification dispatched.",
+          "Order Accepted",
+        );
+      }
     } catch {
       // Graceful fallback
     }
@@ -100,18 +110,21 @@ export default function VendorOrdersPage() {
     setOrders((prev) =>
       prev.map((o) => (o.id === id ? { ...o, status: "accepted" } : o)),
     );
-    toast.success("Order accepted! Kitchen notification dispatched.", "Order Accepted");
   };
 
   const handleReject = async (id: string) => {
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${serverUrl}/orders/${id}/status`, {
+      const res = await fetch(`${serverUrl}/orders/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "rejected" }),
       });
+      const resData = await res.json();
+      if (resData.modifiedCount > 0) {
+        toast.error("Order has been rejected.", "Order Rejected");
+      }
     } catch {
       // Graceful fallback
     }
@@ -119,7 +132,6 @@ export default function VendorOrdersPage() {
     setOrders((prev) =>
       prev.map((o) => (o.id === id ? { ...o, status: "rejected" } : o)),
     );
-    toast.error("Order has been rejected.", "Order Rejected");
   };
 
   const getStatusBadge = (status: Order["status"]) => {
@@ -149,7 +161,8 @@ export default function VendorOrdersPage() {
           Customer Orders
         </h1>
         <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-          Review pending customer orders, confirm delivery schedules, and manage kitchen status.
+          Review pending customer orders, confirm delivery schedules, and manage
+          kitchen status.
         </p>
       </div>
 
@@ -171,7 +184,8 @@ export default function VendorOrdersPage() {
             No Customer Orders Yet
           </h3>
           <p className="text-xs text-stone-500 max-w-sm leading-relaxed">
-            When hungry customers order from your published pizza recipes, their orders will appear here in real-time for kitchen confirmation.
+            When hungry customers order from your published pizza recipes, their
+            orders will appear here in real-time for kitchen confirmation.
           </p>
         </div>
       ) : (
