@@ -12,6 +12,7 @@ interface MenuItem {
   price: number;
   status: "pending" | "approved" | "rejected";
   image?: string;
+  images?: string[];
   createdAt: string;
 }
 
@@ -113,32 +114,52 @@ export default function AdminMenuPage() {
           </div>
         ) : (
           <div className="divide-y divide-stone-100 dark:divide-stone-800">
-            {items.map((item) => (
-              <div
-                key={item._id}
-                className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h5 className="font-heading font-bold text-sm text-stone-900 dark:text-white">
-                      {item.itemName}
-                    </h5>
-                    <span
-                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${
-                        item.status === "approved"
-                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                          : item.status === "pending"
-                          ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                          : "bg-rose-500/10 text-rose-600 border-rose-500/20"
-                      }`}
-                    >
-                      {item.status}
-                    </span>
+            {items.map((item) => {
+              const itemImg =
+                item.image || (Array.isArray(item.images) ? item.images[0] : "");
+
+              return (
+                <div
+                  key={item._id}
+                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-4">
+                    {/* Pizza Thumbnail Image */}
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden bg-stone-900 border border-stone-800 shrink-0 flex items-center justify-center">
+                      {itemImg ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={itemImg}
+                          alt={item.itemName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <PizzaIcon size={24} className="text-red-500/60" />
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h5 className="font-heading font-bold text-sm text-stone-900 dark:text-white">
+                          {item.itemName}
+                        </h5>
+                        <span
+                          className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${
+                            item.status === "approved"
+                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                              : item.status === "pending"
+                              ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                              : "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-stone-500 mt-0.5">
+                        Vendor: {item.vendorName} • {item.category} • ${item.price.toFixed(2)}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-stone-500 mt-0.5">
-                    Vendor: {item.vendorName} • {item.category} • ${item.price.toFixed(2)}
-                  </p>
-                </div>
 
                 <div className="flex items-center gap-2">
                   {item.status === "pending" && (
@@ -163,7 +184,8 @@ export default function AdminMenuPage() {
                   )}
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
         )}
       </div>
