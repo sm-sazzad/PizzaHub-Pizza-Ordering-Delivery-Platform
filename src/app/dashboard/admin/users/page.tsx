@@ -121,10 +121,10 @@ export default function AdminUsersPage() {
           onChange={(e) => setRoleFilter(e.target.value)}
           className="px-4 py-3 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 text-xs font-semibold focus:outline-none"
         >
-          <option value="all">All Roles</option>
-          <option value="customer">Customers Only</option>
-          <option value="vendor">Vendors Only</option>
-          <option value="admin">Administrators</option>
+          <option value="all" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">All Roles</option>
+          <option value="customer" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Customers Only</option>
+          <option value="vendor" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Vendors Only</option>
+          <option value="admin" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Administrators</option>
         </select>
       </div>
 

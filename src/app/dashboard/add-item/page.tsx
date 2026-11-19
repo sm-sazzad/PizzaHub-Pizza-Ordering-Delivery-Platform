@@ -315,10 +315,14 @@ export default function AddMenuItemPage() {
                 id="category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700/70 text-stone-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all"
+                className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all cursor-pointer"
               >
                 {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
+                  <option
+                    key={cat}
+                    value={cat}
+                    className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white py-2"
+                  >
                     {cat}
                   </option>
                 ))}

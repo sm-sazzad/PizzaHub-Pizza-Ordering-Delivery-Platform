@@ -82,3 +82,22 @@ h1, h2, h3, h4, .font-heading {
     background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0);
   }
 }
+
+/* Fix native dropdown option colors for high contrast in light & dark modes */
+select option {
+  background-color: #ffffff;
+  color: #1c1917;
+}
+
+@media (prefers-color-scheme: dark) {
+  select option {
+    background-color: #1c1917;
+    color: #f5f3f0;
+  }
+}
+
+.dark select option {
+  background-color: #1c1917;
+  color: #f5f3f0;
+}
+

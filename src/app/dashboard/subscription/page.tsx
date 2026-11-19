@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/context/ToastContext";
 import {
   CheckIcon,
   SparklesIcon,
@@ -13,53 +12,7 @@ import {
 
 export default function SubscriptionPage() {
   const { user } = useAuth();
-  const toast = useToast();
-  const [isProcessing, setIsProcessing] = useState(false);
-
   const isPremium = user?.subscriptionPlan === "premium";
-
-  const handleStripeCheckout = async () => {
-    setIsProcessing(true);
-    toast.info("Preparing Stripe Checkout session...", "Stripe Gateway");
-
-    try {
-      // Endpoint for Stripe checkout session
-      const baseUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      const targetUrl = `${baseUrl}/create-checkout-session`;
-
-      const res = await fetch(targetUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vendorId: user?.id || "vend-01",
-          vendorEmail: user?.email || "luigi@woodfired.com",
-          plan: "premium",
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Backend Stripe session creation failed.");
-      }
-
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch {
-      toast.info(
-        "Redirecting to Stripe Demo Checkout simulation...",
-        "Stripe Demo"
-      );
-      setTimeout(() => {
-        setIsProcessing(false);
-        toast.success(
-          "Stripe webhook verified! Premium access will be activated upon webhook event.",
-          "Payment Processed"
-        );
-      }, 1500);
-    }
-  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -70,14 +23,16 @@ export default function SubscriptionPage() {
             Vendor Subscriptions
           </span>
           <span className="text-stone-300 dark:text-stone-700">•</span>
-          <span className="text-xs font-semibold text-stone-500">Tier Management</span>
+          <span className="text-xs font-semibold text-stone-500">
+            Tier Management
+          </span>
         </div>
         <h1 className="font-heading text-2xl sm:text-3xl font-black text-stone-900 dark:text-white">
           Subscription & Membership
         </h1>
         <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-          Upgrade your restaurant profile to unlock unlimited menu items, verified badges, and priority
-          homepage placement.
+          Upgrade your restaurant profile to unlock unlimited menu items,
+          verified badges, and priority homepage placement.
         </p>
       </div>
 
@@ -172,7 +127,8 @@ export default function SubscriptionPage() {
                 Premium Vendor Plan
               </h3>
               <p className="text-xs text-stone-400 mt-1">
-                Unlimited menu items, homepage spotlight, and verified gold vendor badge.
+                Unlimited menu items, homepage spotlight, and verified gold
+                vendor badge.
               </p>
             </div>
 
@@ -187,7 +143,9 @@ export default function SubscriptionPage() {
             <ul className="space-y-3 pt-4 border-t border-stone-800 text-xs text-stone-200">
               <li className="flex items-center gap-2.5">
                 <CheckIcon size={16} className="text-amber-400 shrink-0" />
-                <strong className="text-white">Unlimited active menu items</strong>
+                <strong className="text-white">
+                  Unlimited active menu items
+                </strong>
               </li>
               <li className="flex items-center gap-2.5">
                 <CheckIcon size={16} className="text-amber-400 shrink-0" />
@@ -208,24 +166,33 @@ export default function SubscriptionPage() {
             </ul>
           </div>
 
-          <button
-            type="button"
-            onClick={handleStripeCheckout}
-            disabled={isProcessing}
-            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg hover:shadow-red-500/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-75"
-          >
-            {isProcessing ? (
-              <span>Connecting to Stripe...</span>
-            ) : isPremium ? (
-              <span>Manage Stripe Billing</span>
-            ) : (
-              <>
-                <CreditCardIcon size={16} />
-                <span>Upgrade via Stripe Checkout</span>
-                <ArrowRightIcon size={14} />
-              </>
-            )}
-          </button>
+          <form action="/api/checkout_sessions" method="POST">
+            <section>
+              <button
+                type="submit"
+                role="link"
+                disabled={isPremium}
+                className={`w-full py-4 px-6 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                  isPremium
+                    ? "bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 cursor-not-allowed opacity-90"
+                    : "cursor-pointer bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white shadow-lg hover:shadow-red-500/30 hover:-translate-y-0.5"
+                }`}
+              >
+                {isPremium ? (
+                  <>
+                    <CheckIcon size={16} className="text-emerald-400" />
+                    <span>Premium Plan Activated</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCardIcon size={16} />
+                    <span>Upgrade via Stripe Checkout</span>
+                    <ArrowRightIcon size={14} />
+                  </>
+                )}
+              </button>
+            </section>
+          </form>
         </div>
       </div>
 
@@ -233,9 +200,9 @@ export default function SubscriptionPage() {
       <div className="p-4 rounded-2xl bg-stone-100 dark:bg-stone-800/40 border border-stone-200 dark:border-stone-800 text-xs text-stone-500 flex items-center gap-3">
         <ShieldCheckIcon size={18} className="text-emerald-500 shrink-0" />
         <span>
-          <strong>Payment Security:</strong> Premium access is strictly activated after a verified{" "}
-          <strong>Stripe webhook event</strong> on the backend. Secret keys remain securely on the
-          server.
+          <strong>Payment Security:</strong> Premium access is strictly
+          activated after a verified <strong>Stripe webhook event</strong> on
+          the backend. Secret keys remain securely on the server.
         </span>
       </div>
     </div>

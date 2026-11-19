@@ -113,11 +113,11 @@ export default function BrowseMenuPage() {
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
-              className="px-3.5 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-semibold text-stone-700 dark:text-stone-300 focus:outline-none cursor-pointer"
+              className="px-3.5 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs font-semibold text-stone-700 dark:text-stone-300 focus:outline-none cursor-pointer"
             >
-              <option value="default">Default Sort</option>
-              <option value="low-to-high">Price: Low to High</option>
-              <option value="high-to-low">Price: High to Low</option>
+              <option value="default" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Default Sort</option>
+              <option value="low-to-high" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Price: Low to High</option>
+              <option value="high-to-low" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Price: High to Low</option>
             </select>
           </div>
         </div>
