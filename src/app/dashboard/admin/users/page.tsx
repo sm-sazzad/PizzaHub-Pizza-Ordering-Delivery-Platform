@@ -13,6 +13,7 @@ interface UserItem {
   _id: string;
   name: string;
   email: string;
+  image?: string;
   role: "customer" | "vendor" | "admin";
   isBlocked: boolean;
   subscriptionPlan?: string;
@@ -195,29 +196,45 @@ export default function AdminUsersPage() {
                 key={u._id}
                 className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h5 className="font-heading font-bold text-sm text-stone-900 dark:text-white">
-                      {u.name}
-                    </h5>
-                    <span
-                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${
-                        u.role === "admin"
-                          ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
-                          : u.role === "vendor"
-                          ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                          : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                      }`}
-                    >
-                      {u.role}
-                    </span>
-                    {u.isBlocked && (
-                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 border border-rose-500/20">
-                        Blocked
+                <div className="flex items-center gap-3">
+                  {u.image ? (
+                    <div className="w-10 h-10 rounded-xl overflow-hidden ring-1 ring-stone-200 dark:ring-stone-700 shrink-0 bg-stone-100 dark:bg-stone-800">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={u.image}
+                        alt={u.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-amber-500 text-white font-bold text-sm flex items-center justify-center shrink-0">
+                      {u.name ? u.name.charAt(0).toUpperCase() : "U"}
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h5 className="font-heading font-bold text-sm text-stone-900 dark:text-white">
+                        {u.name}
+                      </h5>
+                      <span
+                        className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${
+                          u.role === "admin"
+                            ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
+                            : u.role === "vendor"
+                            ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                            : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                        }`}
+                      >
+                        {u.role}
                       </span>
-                    )}
+                      {u.isBlocked && (
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                          Blocked
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-stone-400 mt-0.5">{u.email}</p>
                   </div>
-                  <p className="text-xs text-stone-400 mt-0.5">{u.email}</p>
                 </div>
 
                 <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -281,9 +298,20 @@ export default function AdminUsersPage() {
 
             {/* Profile Avatar & Name */}
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-amber-500 text-white text-xl font-bold flex items-center justify-center shrink-0">
-                {selectedUser.name.charAt(0).toUpperCase()}
-              </div>
+              {selectedUser.image ? (
+                <div className="w-14 h-14 rounded-2xl overflow-hidden ring-2 ring-stone-200 dark:ring-stone-700 shrink-0 bg-stone-100 dark:bg-stone-800">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedUser.image}
+                    alt={selectedUser.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-amber-500 text-white text-xl font-bold flex items-center justify-center shrink-0">
+                  {selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : "U"}
+                </div>
+              )}
               <div>
                 <h4 className="font-heading text-base font-bold text-stone-900 dark:text-white">
                   {selectedUser.name}

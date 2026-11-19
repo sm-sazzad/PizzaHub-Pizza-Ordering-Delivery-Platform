@@ -129,23 +129,19 @@ export const Navbar: React.FC = () => {
                   className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors focus:outline-none border border-transparent hover:border-stone-200 dark:hover:border-stone-700"
                   aria-expanded={dropdownOpen}
                 >
-                  <div className="relative">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-200 ring-2 ring-red-500/20">
-                      {user.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={user.image}
-                          alt={user.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-red-100 text-red-600 font-bold">
-                          {user.name.charAt(0)}
-                        </div>
-                      )}
-                    </div>
-                    {/* Active online green dot positioned outside overflow-hidden */}
-                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-stone-900 shadow-xs" />
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-900 border border-stone-700/60 shadow-sm shrink-0">
+                    {user.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={user.image}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-600 to-amber-600 text-white font-bold text-sm">
+                        {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                      </div>
+                    )}
                   </div>
                   <div className="hidden sm:flex flex-col text-left">
                     <span className="text-xs font-bold text-stone-800 dark:text-stone-200 max-w-[120px] truncate">
@@ -307,10 +303,14 @@ export const Navbar: React.FC = () => {
             {isLoggedIn && user ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-3 px-2 py-1">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-200">
-                    {user.image && (
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-900 border border-stone-700/60 shrink-0">
+                    {user.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-600 to-amber-600 text-white font-bold text-sm">
+                        {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                      </div>
                     )}
                   </div>
                   <div>

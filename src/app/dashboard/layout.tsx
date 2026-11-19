@@ -264,7 +264,7 @@ export default function DashboardLayout({
         <div className="p-4 border-t border-stone-100 dark:border-stone-800 space-y-3 shrink-0">
           {isLoggedIn && user ? (
             <div className="flex items-center gap-3 px-2 py-1">
-              <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-200 ring-2 ring-red-500/20 shrink-0">
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-900 border border-stone-700/60 shadow-sm shrink-0">
                 {user.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -273,8 +273,8 @@ export default function DashboardLayout({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-red-100 text-red-600 font-bold">
-                    <UserIcon size={18} />
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-600 to-amber-600 text-white font-bold text-sm">
+                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                   </div>
                 )}
               </div>

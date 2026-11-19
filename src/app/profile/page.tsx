@@ -213,9 +213,9 @@ export default function ProfilePage() {
       {/* Hero Profile Overview Card */}
       <div className="rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
-          {/* Avatar with status badge */}
+          {/* Avatar */}
           <div className="relative shrink-0">
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-stone-200 ring-4 ring-red-500/20 shadow-md">
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-stone-900 border border-stone-700/60 shadow-md">
               {avatarPreview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -229,7 +229,6 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-            <span className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-emerald-500 ring-4 ring-white dark:ring-stone-900" />
           </div>
 
           {/* User Details */}
