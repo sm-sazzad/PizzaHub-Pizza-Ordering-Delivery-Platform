@@ -24,7 +24,14 @@ export interface CustomerOrder {
   price: number;
   deliveryDate: string;
   deliveryAddress: string;
-  status: "pending" | "accepted" | "rejected" | "delivered" | "cancelled";
+  status:
+    | "pending"
+    | "accepted"
+    | "rejected"
+    | "delivered"
+    | "cancelled"
+    | "cancled"
+    | string;
   createdAt: string;
 }
 
@@ -35,7 +42,13 @@ export default function CustomerOrdersPage() {
   // Real orders state - starts empty until fetched from MongoDB / Express
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  // Custom confirmation dialog state for canceling order
+  const [orderToCancel, setOrderToCancel] = useState<{
+    id: string;
+    itemName: string;
+  } | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Fetch customer orders from backend
   useEffect(() => {
@@ -46,21 +59,16 @@ export default function CustomerOrdersPage() {
         const serverUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(
-          `${serverUrl}/orders/my-orders?email=${encodeURIComponent(user.email)}`,
+          `${serverUrl}/orders?email=${encodeURIComponent(user.email)}`,
         );
         if (res.ok) {
           const data = await res.json();
-          const list = Array.isArray(data) ? data : data.orders || [];
+          const list = data;
           setOrders(
-            list.map(
-              (
-                o: CustomerOrder & { _id?: string },
-                idx: number,
-              ) => ({
-                ...o,
-                id: o._id || o.id || `order-${idx}`,
-              }),
-            ),
+            list.map((o: CustomerOrder & { _id?: string }, idx: number) => ({
+              ...o,
+              id: o._id || o.id || `order-${idx}`,
+            })),
           );
         }
       } catch {
@@ -73,56 +81,41 @@ export default function CustomerOrdersPage() {
     fetchOrders();
   }, [user?.email]);
 
-  // Cancel order (Assignment 9 PDF Page 6: allowed ONLY if status is 'pending')
-  const handleCancelOrder = async (orderId: string, itemName: string) => {
-    if (!confirm(`Are you sure you want to cancel your order for "${itemName}"?`)) {
-      return;
-    }
+  // Execute cancel order after user confirms in the popup modal
+  const confirmCancelOrder = async () => {
+    if (!orderToCancel) return;
+    setIsCancelling(true);
 
-    setCancellingId(orderId);
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      const res = await fetch(`${serverUrl}/orders/${orderId}/cancel`, {
+      await fetch(`${serverUrl}/orders/${orderToCancel.id}/cancel`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: user?.email }),
       });
-
-      if (res.ok) {
-        setOrders((prev) =>
-          prev.map((o) =>
-            o.id === orderId ? { ...o, status: "cancelled" as const } : o,
-          ),
-        );
-        toast.success(`Order for "${itemName}" has been cancelled.`, "Order Cancelled");
-      } else {
-        // Optimistic / fallback update if backend patch endpoint isn't wired yet
-        setOrders((prev) =>
-          prev.map((o) =>
-            o.id === orderId ? { ...o, status: "cancelled" as const } : o,
-          ),
-        );
-        toast.info(
-          `Order marked as cancelled.`,
-          "Cancelled",
-        );
-      }
-    } catch {
-      // Local fallback
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === orderId ? { ...o, status: "cancelled" as const } : o,
-        ),
-      );
-      toast.info(`Order marked as cancelled.`, "Cancelled");
-    } finally {
-      setCancellingId(null);
+    } catch (error) {
+      console.error("Cancel order error:", error);
     }
+
+    // Update order status to cancelled in local state
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderToCancel.id ? { ...o, status: "cancelled" } : o,
+      ),
+    );
+    toast.success(
+      `Order for "${orderToCancel.itemName}" was cancelled.`,
+      "Order Cancelled",
+    );
+    setIsCancelling(false);
+    setOrderToCancel(null);
   };
 
+  // Get status badge styling and icon (supports both "cancelled" and "cancled")
   const getStatusBadge = (status: CustomerOrder["status"]) => {
-    switch (status) {
+    const normalized = (status || "").toLowerCase();
+    switch (normalized) {
       case "accepted":
         return {
           label: "Accepted",
@@ -152,6 +145,7 @@ export default function CustomerOrdersPage() {
           icon: AlertCircleIcon,
         };
       case "cancelled":
+      case "cancled":
         return {
           label: "Cancelled",
           style:
@@ -161,8 +155,7 @@ export default function CustomerOrdersPage() {
       default:
         return {
           label: status,
-          style:
-            "bg-stone-500/10 text-stone-500 border-stone-500/20",
+          style: "bg-stone-500/10 text-stone-500 border-stone-500/20",
           icon: ClockIcon,
         };
     }
@@ -186,7 +179,8 @@ export default function CustomerOrdersPage() {
             My Pizza Orders
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-            Review delivery schedules and order progress. Pending orders can be cancelled directly.
+            Review delivery schedules and order progress. Pending orders can be
+            cancelled directly.
           </p>
         </div>
 
@@ -217,7 +211,9 @@ export default function CustomerOrdersPage() {
             No Pizza Orders Found
           </h3>
           <p className="text-xs text-stone-500 max-w-md mb-6 leading-relaxed">
-            You haven&apos;t placed any orders yet. Discover authentic artisan pizzas from top verified kitchens and have them delivered piping hot to your doorstep.
+            You haven&apos;t placed any orders yet. Discover authentic artisan
+            pizzas from top verified kitchens and have them delivered piping hot
+            to your doorstep.
           </p>
           <Link
             href="/menu"
@@ -266,12 +262,17 @@ export default function CustomerOrdersPage() {
 
                   <div className="flex flex-wrap items-center gap-4 text-xs text-stone-500 pt-1">
                     <span className="inline-flex items-center gap-1.5">
-                      <CalendarIcon size={14} className="text-amber-500 shrink-0" />
+                      <CalendarIcon
+                        size={14}
+                        className="text-amber-500 shrink-0"
+                      />
                       <span>Delivery: {order.deliveryDate}</span>
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <MapPinIcon size={14} className="text-red-500 shrink-0" />
-                      <span className="truncate max-w-xs">{order.deliveryAddress}</span>
+                      <span className="truncate max-w-xs">
+                        {order.deliveryAddress}
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -290,19 +291,29 @@ export default function CustomerOrdersPage() {
                   <div>
                     {canCancel ? (
                       <button
-                        onClick={() => handleCancelOrder(order.id, order.itemName)}
-                        disabled={cancellingId === order.id}
-                        className="px-4 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-600 text-rose-600 hover:text-white text-xs font-bold transition-colors disabled:opacity-50"
+                        type="button"
+                        onClick={() =>
+                          setOrderToCancel({
+                            id: order.id,
+                            itemName: order.itemName,
+                          })
+                        }
+                        className="px-4 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-600 text-rose-600 hover:text-white text-xs font-bold transition-colors cursor-pointer"
                       >
-                        {cancellingId === order.id ? "Cancelling..." : "Cancel Order"}
+                        Cancel Order
                       </button>
                     ) : (
                       <button
                         disabled
-                        title="Orders cannot be cancelled once accepted by the kitchen."
                         className="px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-400 text-xs font-semibold cursor-not-allowed"
                       >
-                        {order.status === "cancelled" ? "Cancelled" : "Locked (Accepted)"}
+                        {order.status === "cancelled"
+                          ? "Cancelled"
+                          : order.status === "rejected"
+                            ? "Rejected"
+                            : order.status === "delivered"
+                              ? "Delivered"
+                              : "Accepted"}
                       </button>
                     )}
                   </div>
@@ -310,6 +321,53 @@ export default function CustomerOrdersPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Cancel Order Confirmation Modal */}
+      {orderToCancel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-6 sm:p-7 shadow-2xl space-y-5 text-center">
+            {/* Alert Icon */}
+            <div className="w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-950/40 text-rose-600 flex items-center justify-center mx-auto">
+              <AlertCircleIcon size={30} />
+            </div>
+
+            {/* Modal Heading & Description */}
+            <div className="space-y-1.5">
+              <h3 className="font-heading text-lg font-bold text-stone-900 dark:text-white">
+                Cancel Pizza Order?
+              </h3>
+              <p className="text-xs text-stone-500 leading-relaxed">
+                Are you sure you want to cancel your order for{" "}
+                <strong className="text-stone-800 dark:text-stone-200">
+                  &ldquo;{orderToCancel.itemName}&rdquo;
+                </strong>
+                ? This action cannot be undone.
+              </p>
+            </div>
+
+            {/* Modal Action Buttons */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isCancelling}
+                onClick={() => setOrderToCancel(null)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Keep Order
+              </button>
+
+              <button
+                type="button"
+                disabled={isCancelling}
+                onClick={confirmCancelOrder}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-md shadow-rose-600/20 cursor-pointer disabled:opacity-50"
+              >
+                {isCancelling ? "Cancelling..." : "Yes, Cancel"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
