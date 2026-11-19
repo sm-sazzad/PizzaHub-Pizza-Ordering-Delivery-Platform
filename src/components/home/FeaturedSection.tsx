@@ -23,82 +23,6 @@ interface FeaturedItem {
   vendorName?: string;
 }
 
-// Fallback items in case backend database is empty or still loading
-const FALLBACK_ITEMS: FeaturedItem[] = [
-  {
-    _id: "feat-1",
-    itemName: "Margherita di Bufala",
-    category: "Classic Pizzas",
-    description:
-      "San Marzano tomato sauce, fresh buffalo mozzarella, aromatic sweet basil, and extra virgin olive oil.",
-    price: 16.99,
-    location: "Downtown Kitchen",
-    image:
-      "https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=600&auto=format&fit=crop&q=80",
-    vendorName: "Luigi's Hearth",
-  },
-  {
-    _id: "feat-2",
-    itemName: "Truffle Wild Mushroom",
-    category: "Specialty / Gourmet",
-    description:
-      "Roasted cremini and shiitake mushrooms, white truffle oil, fontina, and freshly cracked black pepper.",
-    price: 21.5,
-    location: "Uptown Oven",
-    image:
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80",
-    vendorName: "Artisan Crust Co.",
-  },
-  {
-    _id: "feat-3",
-    itemName: "Diavola Calabrese",
-    category: "Meat Lovers",
-    description:
-      "Spicy Calabrian soppressata, crushed chili flakes, smoked fior di latte, and honey drizzle.",
-    price: 19.0,
-    location: "Midtown Bistro",
-    image:
-      "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=600&auto=format&fit=crop&q=80",
-    vendorName: "Fiamma Woodfire",
-  },
-  {
-    _id: "feat-4",
-    itemName: "Quattro Formaggi Bianca",
-    category: "Classic Pizzas",
-    description:
-      "Gorgonzola dolce, aged pecorino romano, creamy ricotta, and whole milk mozzarella on charred crust.",
-    price: 18.25,
-    location: "Harbor Kitchen",
-    image:
-      "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&auto=format&fit=crop&q=80",
-    vendorName: "Bella Napoli",
-  },
-  {
-    _id: "feat-5",
-    itemName: "Garden Veggie Supreme",
-    category: "Vegetarian Pizzas",
-    description:
-      "Grilled bell peppers, baby artichoke hearts, kalamata olives, red onion, and basil oil.",
-    price: 17.5,
-    location: "Green Village",
-    image:
-      "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=600&auto=format&fit=crop&q=80",
-    vendorName: "Verde Pizza Lab",
-  },
-  {
-    _id: "feat-6",
-    itemName: "Smoked BBQ Brisket",
-    category: "Meat Lovers",
-    description:
-      "Slow-smoked beef brisket, bourbon BBQ glaze, pickled red onions, smoked provolone, and scallions.",
-    price: 22.0,
-    location: "West End Grill",
-    image:
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&auto=format&fit=crop&q=80",
-    vendorName: "Smokehouse Crusts",
-  },
-];
-
 export function FeaturedSection() {
   const [items, setItems] = useState<FeaturedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,18 +36,10 @@ export function FeaturedSection() {
         const response = await fetch(`${apiUrl}/features`);
         if (response.ok) {
           const data = await response.json();
-          // Ensure data is an array
-          if (Array.isArray(data) && data.length > 0) {
-            setItems(data);
-          } else {
-            setItems(FALLBACK_ITEMS);
-          }
-        } else {
-          setItems(FALLBACK_ITEMS);
+          setItems(data);
         }
       } catch (error) {
         console.error("Failed to load featured items:", error);
-        setItems(FALLBACK_ITEMS);
       } finally {
         setLoading(false);
       }
@@ -146,8 +62,8 @@ export function FeaturedSection() {
               Featured Artisan Pizzas
             </h2>
             <p className="text-stone-600 dark:text-stone-400 text-sm sm:text-base leading-relaxed">
-              Handpicked signature recipes baked to perfection with slow-fermented
-              dough and authentic wood-fired ovens.
+              Handpicked signature recipes baked to perfection with
+              slow-fermented dough and authentic wood-fired ovens.
             </p>
           </div>
 
