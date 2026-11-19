@@ -51,7 +51,17 @@ export default function CustomerOrdersPage() {
         if (res.ok) {
           const data = await res.json();
           const list = Array.isArray(data) ? data : data.orders || [];
-          setOrders(list);
+          setOrders(
+            list.map(
+              (
+                o: CustomerOrder & { _id?: string },
+                idx: number,
+              ) => ({
+                ...o,
+                id: o._id || o.id || `order-${idx}`,
+              }),
+            ),
+          );
         }
       } catch {
         // Backend not yet reachable or no records yet; keep empty state
@@ -219,14 +229,14 @@ export default function CustomerOrdersPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {orders.map((order) => {
+          {orders.map((order, idx) => {
             const statusConfig = getStatusBadge(order.status);
             const StatusIcon = statusConfig.icon;
             const canCancel = order.status === "pending";
 
             return (
               <div
-                key={order.id}
+                key={order.id || `order-${idx}`}
                 className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs hover:border-red-500/30 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-6"
               >
                 <div className="space-y-3 min-w-0 flex-1">

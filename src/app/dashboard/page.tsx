@@ -50,21 +50,47 @@ function CustomerOverview({
         const serverUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(
-          `${serverUrl}/orders/my-orders?email=${encodeURIComponent(user.email)}`,
+          `${serverUrl}/orders?email=${encodeURIComponent(user.email)}`,
         );
         if (res.ok) {
           const data = await res.json();
-          const orders = Array.isArray(data) ? data : data.orders || [];
-          setRecentOrders(orders.slice(0, 5));
+          const rawOrders = Array.isArray(data) ? data : data.orders || [];
+          const formatted = rawOrders.map(
+            (
+              o: {
+                _id?: string;
+                id?: string;
+                itemName?: string;
+                vendorName?: string;
+                price?: number;
+                status?: string;
+                deliveryDate?: string;
+                createdAt?: string;
+              },
+              idx: number,
+            ) => ({
+              id: o._id || o.id || `order-${idx}`,
+              itemName: o.itemName || "Artisan Pizza",
+              vendorName: o.vendorName || "Partner Kitchen",
+              price: typeof o.price === "number" ? o.price : 0,
+              status: o.status || "pending",
+              deliveryDate:
+                o.deliveryDate ||
+                (o.createdAt
+                  ? new Date(o.createdAt).toLocaleDateString()
+                  : "Recently"),
+            }),
+          );
+          setRecentOrders(formatted.slice(0, 5));
           setStats({
-            totalOrders: orders.length,
-            pendingOrders: orders.filter(
+            totalOrders: rawOrders.length,
+            pendingOrders: rawOrders.filter(
               (o: { status: string }) => o.status === "pending",
             ).length,
-            acceptedOrders: orders.filter(
+            acceptedOrders: rawOrders.filter(
               (o: { status: string }) => o.status === "accepted",
             ).length,
-            rejectedOrders: orders.filter(
+            rejectedOrders: rawOrders.filter(
               (o: { status: string }) => o.status === "rejected",
             ).length,
           });
@@ -223,9 +249,9 @@ function CustomerOverview({
           </div>
         ) : (
           <div className="divide-y divide-stone-100 dark:divide-stone-800 mt-2">
-            {recentOrders.map((order) => (
+            {recentOrders.map((order, idx) => (
               <div
-                key={order.id}
+                key={order.id || `order-${idx}`}
                 className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
               >
                 <div>
@@ -297,9 +323,7 @@ function VendorOverview({
           fetch(
             `${serverUrl}/menu?vendorEmail=${encodeURIComponent(user.email)}`,
           ),
-          fetch(
-            `${serverUrl}/orders/vendor?email=${encodeURIComponent(user.email)}`,
-          ),
+          fetch(`${serverUrl}/orders?email=${encodeURIComponent(user.email)}`),
         ]);
 
         let totalItems = 0;
