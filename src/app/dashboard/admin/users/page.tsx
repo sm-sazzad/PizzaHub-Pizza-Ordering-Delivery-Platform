@@ -5,15 +5,18 @@ import { useToast } from "@/context/ToastContext";
 import {
   UsersIcon,
   SearchIcon,
+  EyeIcon,
+  CloseIcon,
 } from "@/components/ui/Icons";
 
 interface UserItem {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   role: "customer" | "vendor" | "admin";
   isBlocked: boolean;
-  createdAt: string;
+  subscriptionPlan?: string;
+  createdAt?: string;
 }
 
 export default function AdminUsersPage() {
@@ -22,6 +25,14 @@ export default function AdminUsersPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+
+  // State for View User Info modal
+  const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
+
+  // State for Change Role modal
+  const [roleModalUser, setRoleModalUser] = useState<UserItem | null>(null);
+  const [newRole, setNewRole] = useState<"customer" | "vendor" | "admin">("customer");
+  const [isUpdatingRole, setIsUpdatingRole] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -32,8 +43,7 @@ export default function AdminUsersPage() {
         const res = await fetch(`${serverUrl}/admin/users`);
         if (res.ok) {
           const data = await res.json();
-          const list = Array.isArray(data) ? data : data.users || [];
-          setUsers(list);
+          setUsers(Array.isArray(data) ? data : []);
         }
       } catch {
         // Backend not yet reachable or empty DB; keep empty state
@@ -60,13 +70,42 @@ export default function AdminUsersPage() {
     }
 
     setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, isBlocked: nextState } : u)),
+      prev.map((u) => (u._id === id ? { ...u, isBlocked: nextState } : u)),
     );
     if (nextState) {
       toast.warning(`Account for ${name} has been blocked.`, "User Blocked");
     } else {
       toast.success(`Account for ${name} has been unblocked.`, "User Unblocked");
     }
+  };
+
+  // Handle role update
+  const handleSaveRole = async () => {
+    if (!roleModalUser) return;
+    setIsUpdatingRole(true);
+    try {
+      const serverUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      await fetch(`${serverUrl}/admin/users/${roleModalUser._id}/role`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: newRole }),
+      });
+    } catch {
+      // Graceful fallback
+    }
+
+    setUsers((prev) =>
+      prev.map((u) =>
+        u._id === roleModalUser._id ? { ...u, role: newRole } : u,
+      ),
+    );
+    toast.success(
+      `Role for ${roleModalUser.name} changed to ${newRole.toUpperCase()}!`,
+      "Role Updated",
+    );
+    setIsUpdatingRole(false);
+    setRoleModalUser(null);
   };
 
   const filteredUsers = users.filter((u) => {
@@ -153,7 +192,7 @@ export default function AdminUsersPage() {
           <div className="divide-y divide-stone-100 dark:divide-stone-800">
             {filteredUsers.map((u) => (
               <div
-                key={u.id}
+                key={u._id}
                 className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div>
@@ -181,11 +220,32 @@ export default function AdminUsersPage() {
                   <p className="text-xs text-stone-400 mt-0.5">{u.email}</p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  {/* View User Info Button */}
+                  <button
+                    onClick={() => setSelectedUser(u)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    <EyeIcon size={14} />
+                    <span>View Info</span>
+                  </button>
+
+                  {/* Change Role Button */}
+                  <button
+                    onClick={() => {
+                      setRoleModalUser(u);
+                      setNewRole(u.role);
+                    }}
+                    className="px-3 py-1.5 rounded-xl border border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Change Role
+                  </button>
+
+                  {/* Block / Unblock Button */}
                   {u.role !== "admin" && (
                     <button
-                      onClick={() => handleToggleBlock(u.id, u.name, u.isBlocked)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                      onClick={() => handleToggleBlock(u._id, u.name, u.isBlocked)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                         u.isBlocked
                           ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                           : "border border-rose-500/30 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
@@ -200,6 +260,167 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      {/* 1. View User Info Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-6 sm:p-7 shadow-2xl space-y-5">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
+              <h3 className="font-heading text-lg font-bold text-stone-900 dark:text-white">
+                User Details
+              </h3>
+              <button
+                type="button"
+                onClick={() => setSelectedUser(null)}
+                className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition-colors cursor-pointer"
+              >
+                <CloseIcon size={20} />
+              </button>
+            </div>
+
+            {/* Profile Avatar & Name */}
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-amber-500 text-white text-xl font-bold flex items-center justify-center shrink-0">
+                {selectedUser.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h4 className="font-heading text-base font-bold text-stone-900 dark:text-white">
+                  {selectedUser.name}
+                </h4>
+                <p className="text-xs text-stone-400">{selectedUser.email}</p>
+              </div>
+            </div>
+
+            {/* User Details Grid */}
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800">
+                <span className="text-stone-400 block text-[10px] uppercase font-bold mb-1">
+                  Account Role
+                </span>
+                <span className="font-bold text-stone-900 dark:text-white capitalize">
+                  {selectedUser.role}
+                </span>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800">
+                <span className="text-stone-400 block text-[10px] uppercase font-bold mb-1">
+                  Account Status
+                </span>
+                <span
+                  className={`font-bold ${
+                    selectedUser.isBlocked ? "text-rose-600" : "text-emerald-600"
+                  }`}
+                >
+                  {selectedUser.isBlocked ? "Blocked" : "Active"}
+                </span>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800">
+                <span className="text-stone-400 block text-[10px] uppercase font-bold mb-1">
+                  Subscription
+                </span>
+                <span className="font-bold text-stone-900 dark:text-white capitalize">
+                  {selectedUser.subscriptionPlan === "premium"
+                    ? "Premium Tier"
+                    : "Free Plan"}
+                </span>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-800">
+                <span className="text-stone-400 block text-[10px] uppercase font-bold mb-1">
+                  User ID
+                </span>
+                <span className="font-mono text-stone-600 dark:text-stone-300 text-[11px] truncate block">
+                  {selectedUser._id}
+                </span>
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedUser(null)}
+                className="w-full py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 dark:bg-white dark:hover:bg-stone-100 text-white dark:text-stone-900 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Change Role Modal */}
+      {roleModalUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-6 sm:p-7 shadow-2xl space-y-5">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
+              <h3 className="font-heading text-lg font-bold text-stone-900 dark:text-white">
+                Change User Role
+              </h3>
+              <button
+                type="button"
+                onClick={() => setRoleModalUser(null)}
+                className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition-colors cursor-pointer"
+              >
+                <CloseIcon size={20} />
+              </button>
+            </div>
+
+            <p className="text-xs text-stone-500">
+              Select a new role for{" "}
+              <strong className="text-stone-900 dark:text-white">
+                {roleModalUser.name}
+              </strong>
+              :
+            </p>
+
+            {/* Role Select Dropdown */}
+            <div>
+              <select
+                value={newRole}
+                onChange={(e) =>
+                  setNewRole(
+                    e.target.value as "customer" | "vendor" | "admin",
+                  )
+                }
+                className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white text-xs font-semibold focus:outline-none"
+              >
+                <option value="customer" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">
+                  Customer
+                </option>
+                <option value="vendor" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">
+                  Vendor (Restaurant)
+                </option>
+                <option value="admin" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">
+                  Administrator
+                </option>
+              </select>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setRoleModalUser(null)}
+                className="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isUpdatingRole}
+                onClick={handleSaveRole}
+                className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all shadow-md shadow-purple-600/20 cursor-pointer disabled:opacity-50"
+              >
+                {isUpdatingRole ? "Saving..." : "Save Role"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

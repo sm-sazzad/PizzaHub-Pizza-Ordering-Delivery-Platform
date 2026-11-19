@@ -68,7 +68,15 @@ export default function VendorOrdersPage() {
                 itemName: o.itemName || "Artisan Pizza",
                 itemPrice:
                   typeof o.itemPrice === "number" ? o.itemPrice : o.price || 0,
-                deliveryDate: o.deliveryDate || "ASAP",
+                deliveryDate:
+                  o.deliveryDate ||
+                  (o.createdAt
+                    ? new Date(o.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : "Today (ASAP)"),
                 deliveryAddress: o.deliveryAddress || "Address provided",
                 customerMessage: o.customerMessage,
                 status: o.status || "pending",

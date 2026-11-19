@@ -17,6 +17,7 @@ import {
   FlameIcon,
   ClockIcon,
   HeartIcon,
+  CalendarIcon,
 } from "@/components/ui/Icons";
 
 // Data shape for single pizza item
@@ -55,6 +56,9 @@ export default function MenuItemDetailsPage({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState(() =>
+    new Date().toISOString().split("T")[0],
+  );
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -183,6 +187,7 @@ export default function MenuItemDetailsPage({
       customerEmail: user?.email || "",
       customerPhone: phone.trim(),
       deliveryAddress: address.trim(),
+      deliveryDate: deliveryDate || new Date().toISOString().split("T")[0],
       specialNotes: notes.trim(),
       totalAmount: item.price,
       status: "pending",
@@ -560,6 +565,31 @@ export default function MenuItemDetailsPage({
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:border-red-500"
+                  />
+                </div>
+              </div>
+
+              {/* Delivery Date */}
+              <div className="space-y-1">
+                <label
+                  htmlFor="deliveryDate"
+                  className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300"
+                >
+                  Delivery Date <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <CalendarIcon
+                    size={16}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
+                  />
+                  <input
+                    id="deliveryDate"
+                    type="date"
+                    required
+                    min={new Date().toISOString().split("T")[0]}
+                    value={deliveryDate}
+                    onChange={(e) => setDeliveryDate(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs text-stone-900 dark:text-white focus:outline-none focus:border-red-500"
                   />
                 </div>
               </div>

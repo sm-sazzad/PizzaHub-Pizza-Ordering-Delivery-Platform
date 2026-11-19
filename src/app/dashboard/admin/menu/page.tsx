@@ -5,7 +5,7 @@ import { useToast } from "@/context/ToastContext";
 import { PizzaIcon } from "@/components/ui/Icons";
 
 interface MenuItem {
-  id: string;
+  _id: string;
   itemName: string;
   vendorName: string;
   category: string;
@@ -29,8 +29,7 @@ export default function AdminMenuPage() {
         const res = await fetch(`${serverUrl}/admin/menu`);
         if (res.ok) {
           const data = await res.json();
-          const list = Array.isArray(data) ? data : data.items || [];
-          setItems(list);
+          setItems(Array.isArray(data) ? data : []);
         }
       } catch {
         // Backend not yet reachable or empty DB; keep empty state
@@ -50,7 +49,7 @@ export default function AdminMenuPage() {
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${serverUrl}/admin/menu/${id}/status`, {
+      await fetch(`${serverUrl}/menu/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
@@ -60,7 +59,7 @@ export default function AdminMenuPage() {
     }
 
     setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, status: nextStatus } : i)),
+      prev.map((i) => (i._id === id ? { ...i, status: nextStatus } : i)),
     );
 
     if (nextStatus === "approved") {
@@ -116,7 +115,7 @@ export default function AdminMenuPage() {
           <div className="divide-y divide-stone-100 dark:divide-stone-800">
             {items.map((item) => (
               <div
-                key={item.id}
+                key={item._id}
                 className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div>
@@ -146,7 +145,7 @@ export default function AdminMenuPage() {
                     <>
                       <button
                         onClick={() =>
-                          handleUpdateStatus(item.id, item.itemName, "rejected")
+                          handleUpdateStatus(item._id, item.itemName, "rejected")
                         }
                         className="px-3.5 py-1.5 rounded-xl border border-rose-500/30 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-colors"
                       >
@@ -154,7 +153,7 @@ export default function AdminMenuPage() {
                       </button>
                       <button
                         onClick={() =>
-                          handleUpdateStatus(item.id, item.itemName, "approved")
+                          handleUpdateStatus(item._id, item.itemName, "approved")
                         }
                         className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-xs"
                       >

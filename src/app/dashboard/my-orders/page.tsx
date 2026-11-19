@@ -14,10 +14,13 @@ import {
   CalendarIcon,
   DollarSignIcon,
   CloseIcon,
+  EyeIcon,
 } from "@/components/ui/Icons";
 
 export interface CustomerOrder {
   id: string;
+  menuItemId?: string;
+  itemId?: string;
   itemName: string;
   vendorName: string;
   quantity?: number;
@@ -63,12 +66,36 @@ export default function CustomerOrdersPage() {
         );
         if (res.ok) {
           const data = await res.json();
-          const list = data;
+          const list = Array.isArray(data) ? data : data.orders || [];
           setOrders(
-            list.map((o: CustomerOrder & { _id?: string }, idx: number) => ({
-              ...o,
-              id: o._id || o.id || `order-${idx}`,
-            })),
+            list.map((o: CustomerOrder & { _id?: string }, idx: number) => {
+              // Ensure deliveryDate is never blank; fallback to createdAt
+              const rawDate = o.deliveryDate || o.createdAt;
+              let formattedDate = "Today (ASAP)";
+              if (rawDate) {
+                try {
+                  const d = new Date(rawDate);
+                  if (!isNaN(d.getTime())) {
+                    formattedDate = d.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    });
+                  } else {
+                    formattedDate = rawDate;
+                  }
+                } catch {
+                  formattedDate = rawDate;
+                }
+              }
+
+              return {
+                ...o,
+                id: o._id || o.id || `order-${idx}`,
+                menuItemId: o.menuItemId || o.itemId,
+                deliveryDate: formattedDate,
+              };
+            }),
           );
         }
       } catch {
@@ -250,7 +277,16 @@ export default function CustomerOrdersPage() {
 
                   <div>
                     <h3 className="font-heading text-base sm:text-lg font-bold text-stone-900 dark:text-white">
-                      {order.itemName}
+                      {order.menuItemId ? (
+                        <Link
+                          href={`/menu/${order.menuItemId}`}
+                          className="hover:text-red-600 transition-colors"
+                        >
+                          {order.itemName}
+                        </Link>
+                      ) : (
+                        order.itemName
+                      )}
                     </h3>
                     <p className="text-xs text-stone-500 mt-0.5">
                       Kitchen Partner:{" "}
@@ -288,7 +324,21 @@ export default function CustomerOrdersPage() {
                     </span>
                   </div>
 
-                  <div>
+                  <div className="flex items-center gap-2">
+                    {/* View Item Details Button */}
+                    <Link
+                      href={
+                        order.menuItemId
+                          ? `/menu/${order.menuItemId}`
+                          : "/menu"
+                      }
+                      className="px-3.5 py-2 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                      title="View Pizza Details"
+                    >
+                      <EyeIcon size={14} />
+                      <span>View</span>
+                    </Link>
+
                     {canCancel ? (
                       <button
                         type="button"
@@ -307,7 +357,8 @@ export default function CustomerOrdersPage() {
                         disabled
                         className="px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-400 text-xs font-semibold cursor-not-allowed"
                       >
-                        {order.status === "cancelled"
+                        {order.status === "cancelled" ||
+                        order.status === "cancled"
                           ? "Cancelled"
                           : order.status === "rejected"
                             ? "Rejected"

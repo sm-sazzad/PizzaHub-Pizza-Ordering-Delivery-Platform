@@ -594,23 +594,65 @@ function VendorOverview({
 // ============================================================================
 // 3. ADMIN DASHBOARD OVERVIEW (Assignment 9 PDF Page 8)
 // ============================================================================
+interface AdminUser {
+  role?: string;
+  subscriptionPlan?: string;
+}
+
+interface AdminMenuItem {
+  status?: string;
+}
+
 function AdminOverview({
   user,
 }: {
   user: { name?: string; email?: string } | null;
 }) {
-  const [stats] = useState({
-    totalUsers: 0,
-    totalVendors: 0,
-    totalCustomers: 0,
-    totalMenuItems: 0,
-    pendingItems: 0,
-    totalTransactions: 0,
-  });
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [menuItems, setMenuItems] = useState<AdminMenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch admin data from Express backend
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const serverUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+        // 1. Fetch all users
+        const usersRes = await fetch(`${serverUrl}/admin/users`);
+        if (usersRes.ok) {
+          const usersData = await usersRes.json();
+          setUsers(Array.isArray(usersData) ? usersData : []);
+        }
+
+        // 2. Fetch all menu items
+        const menuRes = await fetch(`${serverUrl}/admin/menu`);
+        if (menuRes.ok) {
+          const menuData = await menuRes.json();
+          setMenuItems(Array.isArray(menuData) ? menuData : []);
+        }
+      } catch (error) {
+        console.error("Error loading admin data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAdminData();
+  }, []);
+
+  // Calculate 6 metrics required by Assignment 9
+  const totalUsers = users.length;
+  const totalVendors = users.filter((u) => u.role === "vendor").length;
+  const totalCustomers = users.filter((u) => u.role === "customer" || !u.role).length;
+  const totalMenuItems = menuItems.length;
+  const pendingItems = menuItems.filter((m) => m.status === "pending").length;
+  const totalTransactions = users.filter((u) => u.subscriptionPlan === "premium").length;
 
   return (
     <div className="space-y-8">
-      {/* Top Banner & Welcome */}
+      {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200 dark:border-stone-800">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -623,8 +665,7 @@ function AdminOverview({
             System Administration ({user?.name || "Administrator"})
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-            Platform oversight, user management, recipe approvals, and financial
-            transactions.
+            Platform oversight, user management, recipe approvals, and financial transactions.
           </p>
         </div>
 
@@ -634,60 +675,72 @@ function AdminOverview({
         </div>
       </div>
 
-      {/* 6 Stat Cards for Admin (Assignment 9 PDF Page 8) */}
+      {/* 6 Stat Cards (Assignment 9 PDF Page 8) */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {/* Total Users */}
         <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
             Total Users
           </span>
           <span className="text-2xl font-black text-stone-900 dark:text-white font-heading">
-            {stats.totalUsers}
+            {loading ? "..." : totalUsers}
           </span>
+          <span className="text-[11px] text-stone-400 block mt-1">All accounts</span>
         </div>
 
+        {/* Vendors */}
         <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 block mb-1">
             Vendors
           </span>
           <span className="text-2xl font-black text-amber-600 font-heading">
-            {stats.totalVendors}
+            {loading ? "..." : totalVendors}
           </span>
+          <span className="text-[11px] text-stone-400 block mt-1">Kitchen partners</span>
         </div>
 
+        {/* Customers */}
         <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block mb-1">
             Customers
           </span>
           <span className="text-2xl font-black text-emerald-600 font-heading">
-            {stats.totalCustomers}
+            {loading ? "..." : totalCustomers}
           </span>
+          <span className="text-[11px] text-stone-400 block mt-1">Food lovers</span>
         </div>
 
+        {/* Menu Items */}
         <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 block mb-1">
             Menu Items
           </span>
           <span className="text-2xl font-black text-red-600 font-heading">
-            {stats.totalMenuItems}
+            {loading ? "..." : totalMenuItems}
           </span>
+          <span className="text-[11px] text-stone-400 block mt-1">Total pizzas</span>
         </div>
 
+        {/* Pending Items */}
         <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 block mb-1">
-            Pending Approval
+            Pending Items
           </span>
           <span className="text-2xl font-black text-orange-600 font-heading">
-            {stats.pendingItems}
+            {loading ? "..." : pendingItems}
           </span>
+          <span className="text-[11px] text-stone-400 block mt-1">Need review</span>
         </div>
 
+        {/* Transactions */}
         <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 block mb-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 block mb-1">
             Transactions
           </span>
-          <span className="text-2xl font-black text-stone-800 dark:text-stone-200 font-heading">
-            {stats.totalTransactions}
+          <span className="text-2xl font-black text-blue-600 font-heading">
+            {loading ? "..." : totalTransactions}
           </span>
+          <span className="text-[11px] text-stone-400 block mt-1">Premium upgrades</span>
         </div>
       </div>
 
@@ -719,8 +772,7 @@ function AdminOverview({
             Review Menu Items
           </h4>
           <p className="text-xs text-stone-500">
-            Approve or reject newly submitted vendor recipes before they go
-            live.
+            Approve or reject newly submitted vendor recipes before they go live.
           </p>
         </Link>
 

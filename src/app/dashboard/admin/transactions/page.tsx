@@ -8,7 +8,8 @@ import {
 } from "@/components/ui/Icons";
 
 interface TransactionItem {
-  id: string;
+  _id?: string;
+  id?: string;
   vendorName: string;
   vendorEmail: string;
   stripeSessionId: string;
@@ -90,7 +91,7 @@ export default function AdminTransactionsPage() {
           <div className="divide-y divide-stone-100 dark:divide-stone-800">
             {transactions.map((tx) => (
               <div
-                key={tx.id}
+                key={tx._id || tx.id}
                 className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div>
