@@ -19,13 +19,13 @@ interface PizzaCraft {
   name: string;
   italianName: string;
   description: string;
-  price: number;
   bakeTime: string;
   heatLevel: "Mild" | "Medium" | "Fiery";
   rating: number;
   crustType: string;
   imageUrl: string;
-  tags: string[];
+  styleName: string;
+  subtitle: string;
 }
 
 const FEATURED_PIZZAS: PizzaCraft[] = [
@@ -35,14 +35,14 @@ const FEATURED_PIZZAS: PizzaCraft[] = [
     italianName: "Pizza Piccante con Miele",
     description:
       "Crispy cupped pepperoni, San Marzano tomato reduction, fresh mozzarella, and artisanal habanero hot honey drizzle.",
-    price: 18.5,
     bakeTime: "90s @ 485°C",
     heatLevel: "Fiery",
     rating: 4.95,
     crustType: "Woodfired Neapolitan",
+    styleName: "Diavola",
+    subtitle: "Spicy Pepperoni",
     imageUrl:
-      "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=700&auto=format&fit=crop&q=80",
-    tags: ["Woodfired", "Artisan Honey", "Chef's Pick"],
+      "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=800&auto=format&fit=crop&q=85",
   },
   {
     id: "pizza-2",
@@ -50,35 +50,34 @@ const FEATURED_PIZZAS: PizzaCraft[] = [
     italianName: "Funghi Selvatici e Tartufo",
     description:
       "Roasted cremini and chanterelles, black truffle cream, aged fontina, fresh thyme, and roasted garlic olive oil.",
-    price: 21.0,
     bakeTime: "110s @ 470°C",
     heatLevel: "Mild",
     rating: 4.9,
     crustType: "Heritage Sourdough",
+    styleName: "Truffle",
+    subtitle: "Gourmet Mushroom",
     imageUrl:
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=700&auto=format&fit=crop&q=80",
-    tags: ["Vegetarian", "Black Truffle", "Cream Base"],
+      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=85",
   },
   {
     id: "pizza-3",
-    name: "Margherita D.O.P. Bianca",
-    italianName: "Regina Margherita Autentica",
+    name: "Classic Margherita",
+    italianName: "Regina Margherita D.O.P.",
     description:
       "Buffalo mozzarella from Campania, sweet Dattilini tomatoes, cold-pressed olive oil, and hand-torn sweet basil.",
-    price: 16.0,
     bakeTime: "85s @ 500°C",
     heatLevel: "Mild",
     rating: 4.98,
     crustType: "Double-Zero Caputo Flour",
+    styleName: "Classic",
+    subtitle: "Naples Traditional",
     imageUrl:
-      "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=700&auto=format&fit=crop&q=80",
-    tags: ["Authentic Italian", "Buffalo Mozzarella", "Classic"],
+      "https://images.unsplash.com/photo-1594007654729-407eedc4be65?w=800&auto=format&fit=crop&q=85",
   },
 ];
 
 export const Hero: React.FC = () => {
   const [selectedPizza, setSelectedPizza] = useState<PizzaCraft>(FEATURED_PIZZAS[0]);
-  const [crustOption, setCrustOption] = useState<"Woodfired" | "Sourdough" | "Stuffed Cheese">("Woodfired");
   const [isRotating, setIsRotating] = useState<boolean>(false);
 
   const handleSelectPizza = (pizza: PizzaCraft) => {
@@ -249,9 +248,9 @@ export const Hero: React.FC = () => {
                 </div>
 
                 {/* Interactive Pizza Visual Disc */}
-                <div className="relative my-6 flex items-center justify-center">
+                <div className="relative my-4 flex items-center justify-center">
                   <div
-                    className={`relative w-56 h-56 sm:w-64 sm:h-64 rounded-full overflow-hidden pizza-disc-shadow transition-transform duration-500 ease-out border-4 border-amber-500/20 ${
+                    className={`relative w-52 h-52 sm:w-60 sm:h-60 rounded-full overflow-hidden pizza-disc-shadow transition-transform duration-500 ease-out border-4 border-amber-500/20 shadow-2xl ${
                       isRotating ? "scale-95 rotate-45 opacity-60" : "scale-100 rotate-0 opacity-100"
                     }`}
                   >
@@ -263,17 +262,19 @@ export const Hero: React.FC = () => {
                     />
                   </div>
 
-                  {/* Floating Price Pill */}
-                  <div className="absolute -bottom-2 -right-1 sm:right-2 bg-stone-900 text-white dark:bg-white dark:text-stone-900 px-4 py-2 rounded-2xl shadow-xl flex items-center gap-2 border border-stone-800 dark:border-stone-200">
-                    <span className="text-xs font-medium uppercase tracking-wider opacity-80">Only</span>
-                    <span className="font-heading font-black text-xl text-amber-400 dark:text-red-600">
-                      ${selectedPizza.price.toFixed(2)}
+                  {/* Floating Style Pill (Styled exactly like ONLY $18, but with the 3 flavor options!) */}
+                  <div className="absolute -bottom-2 -right-1 sm:right-3 bg-white dark:bg-stone-900 text-stone-900 dark:text-white px-3.5 py-1.5 rounded-2xl shadow-xl flex items-center gap-1.5 border border-stone-200 dark:border-stone-800">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
+                      STYLE
+                    </span>
+                    <span className="font-heading font-black text-lg text-red-600 dark:text-red-500">
+                      {selectedPizza.styleName}
                     </span>
                   </div>
                 </div>
 
                 {/* Selected Pizza Details */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex items-baseline justify-between">
                     <div>
                       <h3 className="font-heading text-xl font-black text-stone-900 dark:text-white">
@@ -289,13 +290,13 @@ export const Hero: React.FC = () => {
                     </div>
                   </div>
 
-                  <p className="text-xs text-stone-600 dark:text-stone-300 line-clamp-2">
+                  <p className="text-xs text-stone-600 dark:text-stone-400 line-clamp-2 leading-relaxed">
                     {selectedPizza.description}
                   </p>
                 </div>
 
                 {/* Interactive Pizza Selector Pills (Hero Toy switch) */}
-                <div className="mt-5 pt-4 border-t border-stone-100 dark:border-stone-800 space-y-3">
+                <div className="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800 space-y-3">
                   <div className="flex items-center justify-between text-xs font-bold text-stone-500 dark:text-stone-400">
                     <span>Switch Artisan Pie:</span>
                     <span className="text-[11px] text-amber-600 font-semibold">Live Preview</span>
@@ -308,44 +309,26 @@ export const Hero: React.FC = () => {
                         <button
                           key={pizza.id}
                           onClick={() => handleSelectPizza(pizza)}
-                          className={`p-2 rounded-xl text-left text-xs font-bold transition-all duration-200 border ${
+                          className={`p-2.5 rounded-xl text-left text-xs font-bold transition-all duration-200 border cursor-pointer ${
                             isActive
                               ? "bg-red-500/10 border-red-500 text-red-600 shadow-sm"
                               : "bg-stone-50 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700/60 text-stone-700 dark:text-stone-300 hover:border-red-400"
                           }`}
                         >
-                          <div className="truncate">{pizza.name.split(" ")[0]}</div>
-                          <div className="text-[10px] font-medium text-stone-400">${pizza.price}</div>
+                          <div className="truncate font-heading font-bold text-xs">{pizza.styleName}</div>
+                          <div className="text-[10px] font-medium text-stone-400 truncate">{pizza.subtitle}</div>
                         </button>
                       );
                     })}
                   </div>
 
-                  {/* Interactive Crust Selector */}
-                  <div className="flex items-center gap-2 pt-1">
-                    <span className="text-[11px] font-semibold text-stone-400">Crust:</span>
-                    {(["Woodfired", "Sourdough", "Stuffed Cheese"] as const).map((crust) => (
-                      <button
-                        key={crust}
-                        onClick={() => setCrustOption(crust)}
-                        className={`text-[10px] font-bold px-2 py-1 rounded-md transition-all ${
-                          crustOption === crust
-                            ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900"
-                            : "bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200"
-                        }`}
-                      >
-                        {crust}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Quick Order Button */}
+                  {/* Explore Menu Button (Directs to /menu) */}
                   <Link
-                    href={`/menu/${selectedPizza.id}`}
-                    className="w-full mt-2 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 font-bold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-2 transition-colors shadow-md"
+                    href="/menu"
+                    className="w-full mt-2 py-3.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 font-bold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg group"
                   >
-                    <span>Order {selectedPizza.name} Now</span>
-                    <ArrowRightIcon size={14} />
+                    <span>Explore Full Artisan Menu</span>
+                    <ArrowRightIcon size={14} className="group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               </div>
