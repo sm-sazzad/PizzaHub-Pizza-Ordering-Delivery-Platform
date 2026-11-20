@@ -182,10 +182,10 @@ export function FeaturedSection() {
 
                     <Link
                       href={`/menu/${item._id}`}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all cursor-pointer"
                     >
-                      <ShoppingBagIcon size={14} />
-                      <span>Order</span>
+                      <span>View Details</span>
+                      <ArrowRightIcon size={14} />
                     </Link>
                   </div>
                 </motion.div>

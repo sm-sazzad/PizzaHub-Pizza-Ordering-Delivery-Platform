@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/Icons";
 import { getTokenClient } from "@/lib/tokenAccess";
 import { PizzaDetailSkeleton } from "@/components/ui/Skeleton";
+import { ReviewsSection } from "@/components/menu/ReviewsSection";
 
 // Data shape for single pizza item
 interface MenuItem {
@@ -525,6 +526,9 @@ export default function MenuItemDetailsPage({
           </div>
         </div>
       </div>
+
+      {/* Reviews & Ratings Section (Assignment 9 Optional Requirement #1) */}
+      <ReviewsSection menuItemId={item._id} itemName={item.itemName} />
 
       {/* ========================================================================= */}
       {/* POPUP ORDER MODAL */}

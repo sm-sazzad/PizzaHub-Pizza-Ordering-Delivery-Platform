@@ -47,15 +47,27 @@ function BrowseMenuContent() {
       ) || "All"
     : null;
 
-  // 1. Simple states for items, loading, search, category, and sorting
+  // 1. Simple states for items, loading, search, category, location, and sorting
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string>("All");
   const [sortOrder, setSortOrder] = useState("default");
 
   // Current active category: manual selection takes precedence over URL parameter, fallback to "All"
   const currentCategory = selectedCategory ?? activeUrlCategory ?? "All";
+
+  // Dynamically extract unique locations from loaded menu items
+  const availableLocations = React.useMemo(() => {
+    const locSet = new Set<string>();
+    items.forEach((item) => {
+      if (item.location && item.location.trim()) {
+        locSet.add(item.location.trim());
+      }
+    });
+    return Array.from(locSet);
+  }, [items]);
 
   // 2. Fetch all menu items from API endpoint /menu
   useEffect(() => {
@@ -76,15 +88,19 @@ function BrowseMenuContent() {
     fetchPizzas();
   }, []);
 
-  // 3. Simple filter by name and category
+  // 3. Filter by name, category, and location
   let displayedItems = items.filter((item) => {
     const nameMatches = item.itemName
       ?.toLowerCase()
       .includes(search.toLowerCase());
     const categoryMatches =
       currentCategory === "All" || item.category === currentCategory;
+    const locationMatches =
+      selectedLocation === "All" ||
+      item.location?.trim().toLowerCase() ===
+        selectedLocation.trim().toLowerCase();
 
-    return nameMatches && categoryMatches;
+    return nameMatches && categoryMatches && locationMatches;
   });
 
   // 4. Simple sort by price
@@ -118,10 +134,10 @@ function BrowseMenuContent() {
         transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
         className="bg-white dark:bg-stone-900 p-5 sm:p-6 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm space-y-4"
       >
-        {/* Top Row: Search Input & Sort Dropdown */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        {/* Top Row: Search Input, Location Dropdown & Sort Dropdown */}
+        <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           {/* Search by Name */}
-          <div className="relative w-full sm:max-w-md">
+          <div className="relative flex-1 max-w-md">
             <SearchIcon
               size={18}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
@@ -135,17 +151,48 @@ function BrowseMenuContent() {
             />
           </div>
 
-          {/* Sort By Price Dropdown */}
-          <div className="w-full sm:w-auto flex justify-end">
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              className="px-3.5 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs font-semibold text-stone-700 dark:text-stone-300 focus:outline-none cursor-pointer"
-            >
-              <option value="default" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Default Sort</option>
-              <option value="low-to-high" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Price: Low to High</option>
-              <option value="high-to-low" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Price: High to Low</option>
-            </select>
+          {/* Right Controls: Location Filter Dropdown & Sort By Price */}
+          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+            {/* Filter by Location Dropdown */}
+            <div className="relative flex-1 sm:flex-initial">
+              <div className="relative">
+                <MapPinIcon
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
+                />
+                <select
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="w-full sm:w-auto pl-8 pr-4 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs font-semibold text-stone-700 dark:text-stone-300 focus:outline-none cursor-pointer"
+                >
+                  <option value="All" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">
+                    All Locations
+                  </option>
+                  {availableLocations.map((loc) => (
+                    <option
+                      key={loc}
+                      value={loc}
+                      className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white"
+                    >
+                      {loc}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Sort By Price Dropdown */}
+            <div className="flex-1 sm:flex-initial">
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs font-semibold text-stone-700 dark:text-stone-300 focus:outline-none cursor-pointer"
+              >
+                <option value="default" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Default Sort</option>
+                <option value="low-to-high" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Price: Low to High</option>
+                <option value="high-to-low" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Price: High to Low</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -190,8 +237,21 @@ function BrowseMenuContent() {
             No Pizzas Found
           </h3>
           <p className="text-xs text-stone-500 mt-1">
-            Try searching for something else or reset your category filter.
+            Try searching for something else or reset your category and location filters.
           </p>
+          {(search || currentCategory !== "All" || selectedLocation !== "All") && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setSelectedCategory("All");
+                setSelectedLocation("All");
+              }}
+              className="mt-4 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer"
+            >
+              Reset All Filters
+            </button>
+          )}
         </div>
       ) : (
         /* Pizza Cards Grid */
@@ -268,7 +328,7 @@ function BrowseMenuContent() {
                       href={`/menu/${pizzaId}`}
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors"
                     >
-                      <span>Order Now</span>
+                      <span>View Details</span>
                       <ArrowRightIcon size={14} />
                     </Link>
                   </div>
