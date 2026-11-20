@@ -17,6 +17,7 @@ import {
   ShieldCheckIcon,
   StoreIcon,
   TrendingUpIcon,
+  DollarSignIcon,
 } from "@/components/ui/Icons";
 
 function CustomerOverview({
@@ -31,6 +32,7 @@ function CustomerOverview({
     acceptedOrders: 0,
     rejectedOrders: 0,
   });
+  const [totalSpent, setTotalSpent] = useState(0);
   const [recentOrders, setRecentOrders] = useState<
     Array<{
       id: string;
@@ -96,6 +98,14 @@ function CustomerOverview({
               (o: { status: string }) => o.status === "rejected",
             ).length,
           });
+
+          // Calculate total spending
+          const spent = rawOrders.reduce(
+            (sum: number, o: { price?: number }) =>
+              sum + (typeof o.price === "number" ? o.price : 0),
+            0,
+          );
+          setTotalSpent(spent);
         }
       } catch {
         // Backend not yet reachable or empty DB; keep initial clean states
@@ -106,6 +116,22 @@ function CustomerOverview({
 
     fetchCustomerData();
   }, [user?.email]);
+
+  // Bar Chart Data for Customer Orders
+  const orderBars = [
+    { label: "Total Orders", value: stats.totalOrders, color: "bg-red-600" },
+    { label: "Pending", value: stats.pendingOrders, color: "bg-amber-500" },
+    { label: "Accepted", value: stats.acceptedOrders, color: "bg-emerald-500" },
+    { label: "Declined", value: stats.rejectedOrders, color: "bg-stone-500" },
+  ];
+
+  const maxBarValue = Math.max(...orderBars.map((b) => b.value), 1);
+
+  // Status percentages for fulfillment breakdown
+  const orderTotal = Math.max(stats.totalOrders, 1);
+  const acceptedPercent = Math.round((stats.acceptedOrders / orderTotal) * 100);
+  const pendingPercent = Math.round((stats.pendingOrders / orderTotal) * 100);
+  const rejectedPercent = Math.max(0, 100 - acceptedPercent - pendingPercent);
 
   return (
     <div className="space-y-8">
@@ -204,6 +230,149 @@ function CustomerOverview({
           <span className="text-[11px] text-stone-400 mt-1">
             Cancelled or declined
           </span>
+        </div>
+      </div>
+
+      {/* Customer Orders Bar Chart & Analytics Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Orders Bar Chart */}
+        <div className="lg:col-span-2 p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-1 rounded-md bg-red-500/10 text-red-600">
+                  <TrendingUpIcon size={16} />
+                </span>
+                <h3 className="font-heading text-base font-bold text-stone-900 dark:text-white">
+                  Order Activity Bar Chart
+                </h3>
+              </div>
+              <p className="text-xs text-stone-500 mt-1">
+                Visual breakdown of your total, pending, and confirmed pizza meals
+              </p>
+            </div>
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+              Live Activity
+            </span>
+          </div>
+
+          {/* Bar Chart Container */}
+          <div className="h-56 flex items-end justify-between gap-4 sm:gap-8 pt-8 pb-2 px-4 border-b border-stone-100 dark:border-stone-800">
+            {orderBars.map((bar) => {
+              const heightPercent =
+                maxBarValue > 0
+                  ? Math.max(Math.round((bar.value / maxBarValue) * 100), 8)
+                  : 8;
+
+              return (
+                <div
+                  key={bar.label}
+                  className="flex-1 flex flex-col items-center h-full justify-end group"
+                >
+                  {/* Value tag above bar */}
+                  <span className="text-[11px] font-bold font-mono text-stone-700 dark:text-stone-300 mb-1.5 transition-transform group-hover:-translate-y-0.5">
+                    {isLoading ? "..." : bar.value}
+                  </span>
+
+                  {/* Vertical Bar */}
+                  <div className="w-full max-w-[56px] bg-stone-100 dark:bg-stone-800/80 rounded-2xl p-1.5 flex items-end h-full">
+                    <div
+                      style={{ height: `${heightPercent}%` }}
+                      className={`w-full rounded-xl transition-all duration-500 ${bar.color}`}
+                    />
+                  </div>
+
+                  {/* Label below bar */}
+                  <span className="text-xs font-bold text-stone-500 dark:text-stone-400 mt-2 text-center truncate max-w-full">
+                    {bar.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Chart Legend */}
+          <div className="flex flex-wrap items-center justify-center gap-5 mt-4 pt-2 text-xs text-stone-500">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-600" /> Total Orders
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Pending
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Accepted
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-stone-500" /> Declined
+            </span>
+          </div>
+        </div>
+
+        {/* Side Ratio & Spending Card */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="font-heading text-base font-bold text-stone-900 dark:text-white mb-1">
+              Fulfillment Summary
+            </h3>
+            <p className="text-xs text-stone-500 mb-6">
+              Delivery success and meal progress
+            </p>
+
+            <div className="space-y-5">
+              {/* Progress bar */}
+              <div>
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="font-bold text-stone-700 dark:text-stone-300">
+                    Order Status Ratio
+                  </span>
+                  <span className="text-stone-400 font-mono text-[11px]">
+                    {stats.acceptedOrders} / {stats.totalOrders} Completed
+                  </span>
+                </div>
+                <div className="w-full h-3 rounded-full bg-stone-100 dark:bg-stone-800 overflow-hidden flex">
+                  <div
+                    style={{ width: `${acceptedPercent}%` }}
+                    className="bg-emerald-500 h-full transition-all duration-500"
+                    title={`Accepted: ${acceptedPercent}%`}
+                  />
+                  <div
+                    style={{ width: `${pendingPercent}%` }}
+                    className="bg-amber-500 h-full transition-all duration-500"
+                    title={`Pending: ${pendingPercent}%`}
+                  />
+                  <div
+                    style={{ width: `${rejectedPercent}%` }}
+                    className="bg-stone-500 h-full transition-all duration-500"
+                    title={`Declined: ${rejectedPercent}%`}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-stone-500 mt-1.5">
+                  <span className="text-emerald-500 font-semibold">Accepted ({acceptedPercent}%)</span>
+                  <span className="text-amber-500 font-semibold">Pending ({pendingPercent}%)</span>
+                  <span className="text-stone-400 font-semibold">Declined ({rejectedPercent}%)</span>
+                </div>
+              </div>
+
+              {/* Total Spending Pill */}
+              <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200/80 dark:border-stone-700/60">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                  Total Pizza Spending
+                </span>
+                <span className="font-heading text-2xl font-black text-emerald-600 dark:text-emerald-400 flex items-center">
+                  <DollarSignIcon size={20} className="text-emerald-500" />
+                  <span>{totalSpent.toFixed(2)}</span>
+                </span>
+                <span className="text-[11px] text-stone-400 block mt-0.5">
+                  Across {stats.totalOrders} total meals ordered
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-stone-100 dark:border-stone-800 text-[11px] text-stone-400 flex items-center justify-between">
+            <span>Customer Activity</span>
+            <span className="font-semibold text-emerald-500">Updated Real-Time</span>
+          </div>
         </div>
       </div>
 
@@ -309,6 +478,7 @@ function VendorOverview({
     pendingOrders: 0,
     acceptedOrders: 0,
   });
+  const [totalRevenue, setTotalRevenue] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const isFreePlan = (user?.subscriptionPlan || "free") === "free";
@@ -332,10 +502,11 @@ function VendorOverview({
         let activeItems = 0;
         let pending = 0;
         let accepted = 0;
+        let revenue = 0;
 
         if (menuRes.ok) {
           const menuData = await menuRes.json();
-          const items = menuData;
+          const items = Array.isArray(menuData) ? menuData : [];
           totalItems = items.length;
           activeItems = items.filter(
             (i: { status: string }) => i.status === "approved",
@@ -344,15 +515,23 @@ function VendorOverview({
 
         if (ordersRes.ok) {
           const ordersData = await ordersRes.json();
-          const orders = ordersData;
+          const orders = Array.isArray(ordersData) ? ordersData : [];
           pending = orders.filter(
             (o: { status: string }) => o.status === "pending",
           ).length;
           accepted = orders.filter(
             (o: { status: string }) => o.status === "accepted",
           ).length;
+          revenue = orders
+            .filter((o: { status: string }) => o.status === "accepted")
+            .reduce(
+              (sum: number, o: { totalAmount?: number; price?: number }) =>
+                sum + (o.totalAmount || o.price || 0),
+              0,
+            );
         }
 
+        setTotalRevenue(revenue);
         setStats({
           totalMenuItems: totalItems,
           activeMenuItems: activeItems,
@@ -368,6 +547,25 @@ function VendorOverview({
 
     fetchVendorData();
   }, [user?.email]);
+
+  // Vendor Bar Chart Data
+  const vendorBars = [
+    { label: "Total Menu", value: stats.totalMenuItems, color: "bg-red-600" },
+    { label: "Live Pizzas", value: stats.activeMenuItems, color: "bg-emerald-500" },
+    { label: "Pending Orders", value: stats.pendingOrders, color: "bg-amber-500" },
+    { label: "Fulfilled Orders", value: stats.acceptedOrders, color: "bg-blue-600" },
+  ];
+
+  const maxVendorBarValue = Math.max(...vendorBars.map((b) => b.value), 1);
+
+  // Fulfillment and Menu Ratios
+  const menuTotal = Math.max(stats.totalMenuItems, 1);
+  const activeMenuPercent = Math.round((stats.activeMenuItems / menuTotal) * 100);
+  const pendingMenuPercent = Math.max(0, 100 - activeMenuPercent);
+
+  const orderTotal = Math.max(stats.pendingOrders + stats.acceptedOrders, 1);
+  const fulfilledPercent = Math.round((stats.acceptedOrders / orderTotal) * 100);
+  const pendingOrderPercent = Math.max(0, 100 - fulfilledPercent);
 
   return (
     <div className="space-y-8">
@@ -515,6 +713,171 @@ function VendorOverview({
           <span className="text-[11px] text-stone-400 mt-1">
             Fulfilled successfully
           </span>
+        </div>
+      </div>
+
+      {/* Kitchen Operations Bar Chart & Analytics Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Kitchen Bar Chart */}
+        <div className="lg:col-span-2 p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-1 rounded-md bg-amber-500/10 text-amber-600">
+                  <TrendingUpIcon size={16} />
+                </span>
+                <h3 className="font-heading text-base font-bold text-stone-900 dark:text-white">
+                  Kitchen Operations Bar Chart
+                </h3>
+              </div>
+              <p className="text-xs text-stone-500 mt-1">
+                Visual activity comparison of your recipes, customer orders, and fulfillment
+              </p>
+            </div>
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+              Kitchen Stats
+            </span>
+          </div>
+
+          {/* Bar Chart Container */}
+          <div className="h-56 flex items-end justify-between gap-4 sm:gap-8 pt-8 pb-2 px-4 border-b border-stone-100 dark:border-stone-800">
+            {vendorBars.map((bar) => {
+              const heightPercent =
+                maxVendorBarValue > 0
+                  ? Math.max(Math.round((bar.value / maxVendorBarValue) * 100), 8)
+                  : 8;
+
+              return (
+                <div
+                  key={bar.label}
+                  className="flex-1 flex flex-col items-center h-full justify-end group"
+                >
+                  {/* Value tag above bar */}
+                  <span className="text-[11px] font-bold font-mono text-stone-700 dark:text-stone-300 mb-1.5 transition-transform group-hover:-translate-y-0.5">
+                    {isLoading ? "..." : bar.value}
+                  </span>
+
+                  {/* Vertical Bar */}
+                  <div className="w-full max-w-[56px] bg-stone-100 dark:bg-stone-800/80 rounded-2xl p-1.5 flex items-end h-full">
+                    <div
+                      style={{ height: `${heightPercent}%` }}
+                      className={`w-full rounded-xl transition-all duration-500 ${bar.color}`}
+                    />
+                  </div>
+
+                  {/* Label below bar */}
+                  <span className="text-xs font-bold text-stone-500 dark:text-stone-400 mt-2 text-center truncate max-w-full">
+                    {bar.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Chart Legend */}
+          <div className="flex flex-wrap items-center justify-center gap-5 mt-4 pt-2 text-xs text-stone-500">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-600" /> Total Menu
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Live Pizzas
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Pending Orders
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-600" /> Fulfilled
+            </span>
+          </div>
+        </div>
+
+        {/* Side Performance & Revenue Card */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="font-heading text-base font-bold text-stone-900 dark:text-white mb-1">
+              Kitchen Performance
+            </h3>
+            <p className="text-xs text-stone-500 mb-6">
+              Menu approval & fulfillment ratios
+            </p>
+
+            <div className="space-y-5">
+              {/* 1. Menu Status Ratio */}
+              <div>
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="font-bold text-stone-700 dark:text-stone-300">
+                    Menu: Approved vs Pending
+                  </span>
+                  <span className="text-stone-400 font-mono text-[11px]">
+                    {stats.activeMenuItems} / {stats.totalMenuItems} Live
+                  </span>
+                </div>
+                <div className="w-full h-3 rounded-full bg-stone-100 dark:bg-stone-800 overflow-hidden flex">
+                  <div
+                    style={{ width: `${activeMenuPercent}%` }}
+                    className="bg-emerald-500 h-full transition-all duration-500"
+                    title={`Live: ${activeMenuPercent}%`}
+                  />
+                  <div
+                    style={{ width: `${pendingMenuPercent}%` }}
+                    className="bg-amber-500 h-full transition-all duration-500"
+                    title={`Pending Review: ${pendingMenuPercent}%`}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-stone-500 mt-1.5">
+                  <span className="text-emerald-500 font-semibold">Live ({activeMenuPercent}%)</span>
+                  <span className="text-amber-500 font-semibold">In Review ({pendingMenuPercent}%)</span>
+                </div>
+              </div>
+
+              {/* 2. Order Fulfillment Ratio */}
+              <div>
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="font-bold text-stone-700 dark:text-stone-300">
+                    Order Completion Rate
+                  </span>
+                  <span className="text-stone-400 font-mono text-[11px]">
+                    {stats.acceptedOrders} / {stats.pendingOrders + stats.acceptedOrders} Orders
+                  </span>
+                </div>
+                <div className="w-full h-3 rounded-full bg-stone-100 dark:bg-stone-800 overflow-hidden flex">
+                  <div
+                    style={{ width: `${fulfilledPercent}%` }}
+                    className="bg-blue-600 h-full transition-all duration-500"
+                    title={`Fulfilled: ${fulfilledPercent}%`}
+                  />
+                  <div
+                    style={{ width: `${pendingOrderPercent}%` }}
+                    className="bg-amber-500 h-full transition-all duration-500"
+                    title={`Pending: ${pendingOrderPercent}%`}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-stone-500 mt-1.5">
+                  <span className="text-blue-500 font-semibold">Fulfilled ({fulfilledPercent}%)</span>
+                  <span className="text-amber-500 font-semibold">Pending ({pendingOrderPercent}%)</span>
+                </div>
+              </div>
+
+              {/* 3. Total Kitchen Earnings Card */}
+              <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200/80 dark:border-stone-700/60">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+                  Fulfilled Orders Revenue
+                </span>
+                <span className="font-heading text-2xl font-black text-emerald-600 dark:text-emerald-400 flex items-center">
+                  <DollarSignIcon size={20} className="text-emerald-500" />
+                  <span>{totalRevenue.toFixed(2)}</span>
+                </span>
+                <span className="text-[11px] text-stone-400 block mt-0.5">
+                  From {stats.acceptedOrders} completed kitchen orders
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-stone-100 dark:border-stone-800 text-[11px] text-stone-400 flex items-center justify-between">
+            <span>Kitchen Analytics</span>
+            <span className="font-semibold text-emerald-500">Live Express Feed</span>
+          </div>
         </div>
       </div>
 

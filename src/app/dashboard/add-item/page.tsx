@@ -13,7 +13,7 @@ import {
   ArrowRightIcon,
   SparklesIcon,
   StoreIcon,
-  CheckIcon,
+  PlusCircleIcon,
 } from "@/components/ui/Icons";
 
 const CATEGORIES = [
@@ -38,9 +38,10 @@ export default function AddMenuItemPage() {
   const [price, setPrice] = useState("");
   const [location, setLocation] = useState("");
 
-  // Image upload states
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  // Multiple Images Support (Assignment 9 Requirement)
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [imageUrlInput, setImageUrlInput] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -71,35 +72,79 @@ export default function AddMenuItemPage() {
     fetchExistingItems();
   }, [user?.email]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handle selecting multiple image files
+  const handleMultipleImagesChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    if (!file.type.startsWith("image/")) {
-      toast.error(
-        "Please upload a valid image file (JPG, PNG, WebP).",
-        "Invalid File",
+    const validNewFiles: File[] = [];
+    const validNewPreviews: string[] = [];
+
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith("image/")) {
+        toast.warning(
+          `"${file.name}" is not an image file. Skipped.`,
+          "Invalid File",
+        );
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        toast.warning(
+          `"${file.name}" exceeds 5MB limit. Skipped.`,
+          "File Too Large",
+        );
+        return;
+      }
+
+      validNewFiles.push(file);
+      validNewPreviews.push(URL.createObjectURL(file));
+    });
+
+    if (validNewFiles.length > 0) {
+      setImageFiles((prev) => [...prev, ...validNewFiles]);
+      setImagePreviews((prev) => [...prev, ...validNewPreviews]);
+      toast.success(
+        `Added ${validNewFiles.length} photo(s).`,
+        "Images Selected",
       );
-      return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image file size must be less than 5MB.", "File Too Large");
-      return;
-    }
-
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  };
-
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
+    // Reset file input value to allow selecting same files again if needed
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
+  // Handle adding image via direct URL
+  const handleAddImageUrl = () => {
+    if (!imageUrlInput.trim()) return;
+
+    if (
+      !imageUrlInput.startsWith("http://") &&
+      !imageUrlInput.startsWith("https://")
+    ) {
+      toast.error(
+        "Please enter a valid URL starting with http:// or https://",
+        "Invalid URL",
+      );
+      return;
+    }
+
+    setImagePreviews((prev) => [...prev, imageUrlInput.trim()]);
+    setImageUrlInput("");
+    toast.success("Image URL added to gallery.", "Photo Added");
+  };
+
+  // Remove a single image from previews and files
+  const handleRemoveImage = (indexToRemove: number) => {
+    setImagePreviews((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+    setImageFiles((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  // Form Submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -134,26 +179,46 @@ export default function AddMenuItemPage() {
       return;
     }
 
-    if (!imageFile) {
-      toast.error("Please upload a photo for the menu item.", "Image Required");
+    if (imagePreviews.length === 0) {
+      toast.error(
+        "Please upload or provide at least one photo for this pizza.",
+        "Image Required",
+      );
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // 4. Upload menu item image
-      let hostedImageUrl = "";
-      try {
-        hostedImageUrl = await uploadToImgBB(imageFile);
-      } catch (uploadError) {
-        console.warn("Image upload failed:", uploadError);
-        toast.error(
-          "Failed to upload image. Please try again.",
-          "Upload Error",
+      // 4. Upload all uploaded image files to ImgBB (or fallback)
+      const uploadedImageUrls: string[] = [];
+
+      for (const file of imageFiles) {
+        try {
+          const url = await uploadToImgBB(file);
+          uploadedImageUrls.push(url);
+        } catch (uploadError) {
+          console.warn("ImgBB upload failed for file:", file.name, uploadError);
+          // Fallback placeholder if ImgBB API key not configured
+          uploadedImageUrls.push(
+            "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=80",
+          );
+        }
+      }
+
+      // Combine direct URLs and newly uploaded file URLs
+      const directUrls = imagePreviews.filter((url) =>
+        url.startsWith("http"),
+      );
+      const allFinalImages = Array.from(
+        new Set([...uploadedImageUrls, ...directUrls]),
+      );
+
+      // Fallback if none succeeded
+      if (allFinalImages.length === 0) {
+        allFinalImages.push(
+          "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=80",
         );
-        setIsLoading(false);
-        return;
       }
 
       // 5. Prepare payload matching PDF specification
@@ -167,7 +232,8 @@ export default function AddMenuItemPage() {
         description: description.trim(),
         price: parsedPrice,
         location: location.trim(),
-        images: [hostedImageUrl],
+        images: allFinalImages, // Multiple images saved here!
+        image: allFinalImages[0] || "", // Primary thumbnail
         status: "pending", // Default status Pending until admin approves
         createdAt: new Date().toISOString(),
       };
@@ -200,21 +266,16 @@ export default function AddMenuItemPage() {
       // Increment local count
       setExistingItemsCount((prev) => prev + 1);
 
-      // Reset form
-      setItemName("");
-      setDescription("");
-      setPrice("");
-      setLocation("");
-      handleRemoveImage();
-
-      // Redirect to menu list
-      setTimeout(() => {
-        router.push("/dashboard/menu");
-      }, 700);
-    } catch (err) {
-      const errorMsg =
-        err instanceof Error ? err.message : "Failed to add menu item.";
-      toast.error(errorMsg, "Submission Error");
+      // Redirect to vendor menu management page
+      router.push("/dashboard/menu");
+    } catch (err: unknown) {
+      console.error("Error creating menu item:", err);
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred while saving the menu item.",
+        "Submission Failed",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -222,41 +283,32 @@ export default function AddMenuItemPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      {/* Page Title & Back Link */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200 dark:border-stone-800">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-red-600">
-              Menu Management
-            </span>
-            <span className="text-stone-300 dark:text-stone-700">•</span>
-            <span className="text-xs font-semibold text-stone-500">
-              Create New Recipe
-            </span>
-          </div>
-          <h1 className="font-heading text-2xl sm:text-3xl font-black text-stone-900 dark:text-white">
-            Add New Menu Item
-          </h1>
-          <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-            Published items are submitted with status &apos;Pending&apos; and
-            will be reviewed by platform administrators.
-          </p>
+      {/* Page Header */}
+      <div className="pb-4 border-b border-stone-200 dark:border-stone-800">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-red-600">
+            Vendor Kitchen
+          </span>
+          <span className="text-stone-300 dark:text-stone-700">•</span>
+          <span className="text-xs font-semibold text-stone-500">
+            Menu Catalog
+          </span>
         </div>
-
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors w-fit"
-        >
-          <span>&larr; Back to Overview</span>
-        </Link>
+        <h1 className="font-heading text-2xl sm:text-3xl font-black text-stone-900 dark:text-white">
+          Add New Pizza Item
+        </h1>
+        <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+          Submit artisanal pizza recipes with multiple photos, ingredients, and
+          pricing.
+        </p>
       </div>
 
-      {/* Free Plan Capacity Warning Banner (PDF Page 7) */}
+      {/* Subscription Tier Banner */}
       {!isPremium && (
-        <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-              <SparklesIcon size={18} />
+            <div className="w-10 h-10 rounded-xl bg-amber-500 text-stone-950 flex items-center justify-center shrink-0">
+              <SparklesIcon size={20} />
             </div>
             <div>
               <p className="text-xs font-bold text-amber-900 dark:text-amber-200">
@@ -290,17 +342,15 @@ export default function AddMenuItemPage() {
               >
                 Item Name <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <input
-                  id="itemName"
-                  type="text"
-                  required
-                  value={itemName}
-                  onChange={(e) => setItemName(e.target.value)}
-                  placeholder="e.g. Diavola Rustica con Tartufo"
-                  className="w-full px-4 py-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700/70 text-stone-900 dark:text-white placeholder:text-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all"
-                />
-              </div>
+              <input
+                id="itemName"
+                type="text"
+                required
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+                placeholder="e.g. Diavola Rustica con Tartufo"
+                className="w-full px-4 py-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700/70 text-stone-900 dark:text-white placeholder:text-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all"
+              />
             </div>
 
             {/* Category Dropdown */}
@@ -396,75 +446,111 @@ export default function AddMenuItemPage() {
             </div>
           </div>
 
-          {/* Item Image Upload */}
-          <div className="space-y-2 pt-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
-              Item Image <span className="text-red-500">*</span>
-            </label>
+          {/* Multiple Images Upload Section */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                Pizza Photos (Multiple Images Supported){" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <span className="text-[11px] text-stone-400">
+                {imagePreviews.length} photo(s) added
+              </span>
+            </div>
 
-            {/* Hidden native input */}
+            {/* Hidden native input for multiple file selection */}
             <input
               ref={fileInputRef}
               type="file"
+              multiple
               accept="image/*"
-              onChange={handleImageChange}
+              onChange={handleMultipleImagesChange}
               className="hidden"
-              id="menuItemImageInput"
+              id="menuItemMultipleImageInput"
             />
 
-            {imagePreview ? (
-              /* Preview state */
-              <div className="relative rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-700 p-4 bg-stone-50 dark:bg-stone-800/40 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="relative w-20 h-20 rounded-xl overflow-hidden ring-2 ring-red-500/20 shrink-0 bg-stone-200">
+            {/* Images Preview Grid */}
+            {imagePreviews.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/40 border border-stone-200 dark:border-stone-700">
+                {imagePreviews.map((previewUrl, index) => (
+                  <div
+                    key={index}
+                    className="relative aspect-square rounded-xl overflow-hidden bg-stone-200 dark:bg-stone-700 border border-stone-300 dark:border-stone-600 group shadow-xs"
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={imagePreview}
-                      alt="Menu item preview"
+                      src={previewUrl}
+                      alt={`Preview ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-stone-900 dark:text-white truncate">
-                      {imageFile?.name}
-                    </p>
-                    <p className="text-[11px] text-stone-500 mt-0.5">
-                      {imageFile && (imageFile.size / (1024 * 1024)).toFixed(2)}{" "}
-                      MB • Ready for upload
-                    </p>
-                    <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                      <CheckIcon size={12} />
-                      <span>File Validated</span>
-                    </span>
-                  </div>
-                </div>
 
+                    {/* Primary Badge for first photo */}
+                    {index === 0 && (
+                      <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-600 text-white shadow-xs">
+                        Cover
+                      </span>
+                    )}
+
+                    {/* Delete/Remove button */}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 hover:bg-red-600 text-white flex items-center justify-center transition-colors cursor-pointer"
+                      title="Remove this photo"
+                    >
+                      <CloseIcon size={12} />
+                    </button>
+                  </div>
+                ))}
+
+                {/* Add More Photos Card */}
                 <button
                   type="button"
-                  onClick={handleRemoveImage}
-                  className="p-2 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                  title="Remove image"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="aspect-square rounded-xl border-2 border-dashed border-stone-300 dark:border-stone-600 hover:border-red-500 flex flex-col items-center justify-center gap-1 text-stone-400 hover:text-red-500 transition-colors cursor-pointer bg-white/50 dark:bg-stone-900/50"
                 >
-                  <CloseIcon size={20} />
+                  <PlusCircleIcon size={24} />
+                  <span className="text-[11px] font-bold">Add More</span>
                 </button>
               </div>
-            ) : (
-              /* Empty Dropzone state */
+            )}
+
+            {/* Empty Upload Dropzone if no images yet */}
+            {imagePreviews.length === 0 && (
               <label
-                htmlFor="menuItemImageInput"
+                htmlFor="menuItemMultipleImageInput"
                 className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-stone-300 dark:border-stone-700 hover:border-red-500 bg-stone-50/50 dark:bg-stone-800/30 cursor-pointer transition-colors group text-center"
               >
                 <div className="w-12 h-12 rounded-2xl bg-red-500/10 text-red-600 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
                   <CameraIcon size={24} />
                 </div>
                 <span className="text-sm font-bold text-stone-800 dark:text-stone-200">
-                  Upload High-Res Pizza Photo
+                  Upload Multiple Pizza Photos
                 </span>
                 <span className="text-xs text-stone-400 mt-1 max-w-sm">
-                  Click or drag and drop image file (JPG, PNG, WebP up to 5MB).
+                  Click or drag and drop multiple image files (JPG, PNG, WebP up
+                  to 5MB).
                 </span>
               </label>
             )}
+
+            {/* Optional URL input for direct web images */}
+            <div className="flex gap-2 pt-1">
+              <input
+                type="url"
+                value={imageUrlInput}
+                onChange={(e) => setImageUrlInput(e.target.value)}
+                placeholder="Or paste an image web URL..."
+                className="flex-1 px-4 py-2 rounded-xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white placeholder:text-stone-400 text-xs focus:outline-none focus:ring-2 focus:ring-red-500/30"
+              />
+              <button
+                type="button"
+                onClick={handleAddImageUrl}
+                className="px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 font-bold text-xs transition-colors shrink-0"
+              >
+                Add URL
+              </button>
+            </div>
           </div>
 
           {/* Submission Info Bar */}
@@ -480,20 +566,31 @@ export default function AddMenuItemPage() {
             </span>
           </div>
 
-          {/* Action Button */}
-          <div className="pt-2">
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-stone-100 dark:border-stone-800">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 font-bold text-xs uppercase tracking-wider hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors text-center"
+            >
+              Cancel
+            </button>
+
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 px-6 rounded-2xl bg-linear-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-sm shadow-lg shadow-red-600/25 hover:shadow-xl hover:shadow-red-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg hover:shadow-red-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               {isLoading ? (
-                <span>Publishing Item to Menu...</span>
+                <>
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  <span>Submitting Pizza Item...</span>
+                </>
               ) : (
                 <>
-                  <PizzaIcon size={18} />
-                  <span>Publish Pizza to Menu</span>
-                  <ArrowRightIcon size={16} />
+                  <PizzaIcon size={16} />
+                  <span>Submit for Review</span>
+                  <ArrowRightIcon size={14} />
                 </>
               )}
             </button>

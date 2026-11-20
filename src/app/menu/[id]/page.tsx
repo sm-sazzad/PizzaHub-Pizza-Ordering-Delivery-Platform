@@ -12,12 +12,13 @@ import {
   CloseIcon,
   PhoneIcon,
   CheckIcon,
-  SparklesIcon,
   ShieldCheckIcon,
   FlameIcon,
   ClockIcon,
   HeartIcon,
   CalendarIcon,
+  StoreIcon,
+  AlertCircleIcon,
 } from "@/components/ui/Icons";
 
 // Data shape for single pizza item
@@ -44,9 +45,13 @@ export default function MenuItemDetailsPage({
   const { user, isLoggedIn } = useAuth();
   const toast = useToast();
 
-  // Item and loading state
+  // Validate MongoDB ObjectId (24 hexadecimal characters)
+  const isInvalidId = !id || !/^[0-9a-fA-F]{24}$/.test(id);
+
+  // Item, loading, and not found states
   const [item, setItem] = useState<MenuItem | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isInvalidId);
+  const [isNotFound, setIsNotFound] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   // Favorite State
@@ -62,14 +67,28 @@ export default function MenuItemDetailsPage({
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 1. Fetch item details from API endpoint /menu?id=:id
+  // Fetch item details from API endpoint /menu?id=:id
   useEffect(() => {
+    if (isInvalidId) return;
+
     const fetchItemDetails = async () => {
       try {
         const apiUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const response = await fetch(`${apiUrl}/menu?id=${id}`);
+
+        if (!response.ok) {
+          setIsNotFound(true);
+          return;
+        }
+
         const data = await response.json();
+
+        if (!data || !data._id || !data.itemName) {
+          setIsNotFound(true);
+          return;
+        }
+
         setItem(data);
 
         // Check if item is already in user's saved favorites
@@ -85,19 +104,17 @@ export default function MenuItemDetailsPage({
         }
       } catch (error) {
         console.error("Failed to fetch menu item details:", error);
+        setIsNotFound(true);
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchItemDetails();
-    }
-  }, [id]);
+    fetchItemDetails();
+  }, [id, isInvalidId]);
 
   // Handle clicking "Order Now"
   const handleOpenOrderModal = () => {
-    // If not logged in, prompt user to sign in first
     if (!isLoggedIn) {
       toast.warning("Please sign in to place an order.", "Login Required");
       router.push("/signin");
@@ -158,7 +175,6 @@ export default function MenuItemDetailsPage({
 
     if (!item) return;
 
-    // Validate phone and address
     if (!phone.trim()) {
       toast.warning("Please enter your mobile phone number.", "Phone Required");
       return;
@@ -196,7 +212,6 @@ export default function MenuItemDetailsPage({
     };
 
     try {
-      // Send POST request to backend /orders
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const res = await fetch(`${apiUrl}/orders`, {
         method: "POST",
@@ -205,29 +220,73 @@ export default function MenuItemDetailsPage({
       });
       const resData = await res.json();
       if (resData.insertedId) {
-        // Show success toast
         toast.success(
           `Your order for "${item.itemName}" was placed successfully!`,
           "Order Confirmed",
         );
       }
     } catch (error) {
-      // Graceful fallback if backend /orders is not yet wired
       console.log("Order submitted to client state:", error);
     } finally {
       setIsSubmitting(false);
-      // Close the popup modal
       setIsModalOpen(false);
-
-      // Reset form fields
       setPhone("");
       setAddress("");
       setNotes("");
     }
   };
 
-  // Loading State
-  if (loading) {
+  // 1. Invalid or Not Found Error State (Assignment 9 Requirement)
+  if (isInvalidId || isNotFound) {
+    return (
+      <div className="max-w-xl mx-auto py-20 px-4 text-center space-y-5">
+        <div className="w-16 h-16 rounded-3xl bg-rose-500/10 text-rose-500 border border-rose-500/20 flex items-center justify-center mx-auto shadow-sm">
+          <AlertCircleIcon size={32} />
+        </div>
+
+        <div>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-rose-500 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">
+            {isInvalidId ? "Invalid Item ID" : "Pizza Not Found"}
+          </span>
+          <h2 className="font-heading text-2xl sm:text-3xl font-black text-stone-900 dark:text-white mt-3">
+            পিৎজা আইটেম পাওয়া যায়নি
+          </h2>
+          <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-2 max-w-md mx-auto leading-relaxed">
+            {isInvalidId
+              ? "প্রদত্ত Item ID-টি ইনভ্যালিড। MongoDB ObjectId অবশ্যই ২৪ ক্যারেক্টারের হেক্সাডেসিমেল স্ট্রিং হতে হবে।"
+              : "অনুরোধকৃত পিৎজা রেসিপিটি মেনু ক্যাটালগে নেই অথবা ডাটাবেজ থেকে সরিয়ে ফেলা হয়েছে।"}
+          </p>
+        </div>
+
+        {/* Monospace ID Badge */}
+        <div className="p-3.5 rounded-2xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-xs font-mono text-stone-600 dark:text-stone-400 max-w-sm mx-auto flex items-center justify-between">
+          <span>Requested ID:</span>
+          <span className="font-bold text-rose-500 truncate max-w-[200px]">
+            {id || "None"}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Link
+            href="/menu"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
+          >
+            <PizzaIcon size={16} />
+            <span>সব মেনু দেখুন</span>
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 font-bold text-xs uppercase tracking-wider transition-colors"
+          >
+            <span>হোমে যান</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Loading State
+  if (loading || !item) {
     return (
       <div className="max-w-5xl mx-auto py-24 px-4 text-center">
         <div className="w-12 h-12 border-4 border-red-500/20 border-t-red-600 rounded-full animate-spin mx-auto mb-4" />
@@ -238,32 +297,9 @@ export default function MenuItemDetailsPage({
     );
   }
 
-  // Not Found State
-  if (!item || !item.itemName) {
-    return (
-      <div className="max-w-xl mx-auto py-20 px-4 text-center space-y-4">
-        <div className="w-16 h-16 rounded-3xl bg-red-100 dark:bg-red-950/40 text-red-600 flex items-center justify-center mx-auto">
-          <PizzaIcon size={32} />
-        </div>
-        <h2 className="font-heading text-2xl font-bold text-stone-900 dark:text-white">
-          Pizza Recipe Not Found
-        </h2>
-        <p className="text-xs text-stone-500">
-          The requested pizza item could not be loaded or may have been removed.
-        </p>
-        <Link
-          href="/menu"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider transition-colors"
-        >
-          <span>Back to Menu</span>
-        </Link>
-      </div>
-    );
-  }
-
-  // Gather images with fallback
-  const imagesList =
-    item.images && item.images.length > 0
+  // Gather multiple images with fallback
+  const imagesList: string[] =
+    Array.isArray(item.images) && item.images.length > 0
       ? item.images
       : [
           item.image ||
@@ -286,7 +322,7 @@ export default function MenuItemDetailsPage({
 
       {/* Main Details Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-        {/* Left Column: Image Gallery */}
+        {/* Left Column: Image Gallery (Multiple Images Support) */}
         <div className="space-y-4">
           <div className="relative aspect-4/3 w-full rounded-3xl overflow-hidden bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-800 shadow-md">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -299,9 +335,16 @@ export default function MenuItemDetailsPage({
             <span className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full text-xs font-bold bg-white/90 dark:bg-stone-900/90 backdrop-blur-xs text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700 shadow-sm">
               {item.category}
             </span>
+
+            {/* Image counter pill if multiple images exist */}
+            {imagesList.length > 1 && (
+              <span className="absolute bottom-4 right-4 px-3 py-1 rounded-full text-[11px] font-bold bg-black/70 backdrop-blur-xs text-white">
+                {selectedImageIndex + 1} / {imagesList.length}
+              </span>
+            )}
           </div>
 
-          {/* Thumbnail Gallery (if multiple images) */}
+          {/* Thumbnail Gallery (Multiple Images Support) */}
           {imagesList.length > 1 && (
             <div className="flex items-center gap-3 overflow-x-auto pb-2">
               {imagesList.map((imgUrl, idx) => (
@@ -318,7 +361,7 @@ export default function MenuItemDetailsPage({
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imgUrl}
-                    alt={`${item.itemName} thumbnail ${idx + 1}`}
+                    alt={`${item.itemName} photo ${idx + 1}`}
                     className="w-full h-full object-cover"
                   />
                 </button>
@@ -327,24 +370,21 @@ export default function MenuItemDetailsPage({
           )}
         </div>
 
-        {/* Right Column: Information & Actions */}
+        {/* Right Column: Information, Vendor Details & Order Actions */}
         <div className="space-y-6">
-          {/* Location & Kitchen badge */}
+          {/* Location & Category Badges */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
               <MapPinIcon size={14} />
               <span>{item.location || "Woodfired Kitchen"}</span>
             </span>
 
-            {item.vendorName && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                <SparklesIcon size={14} />
-                <span>Chef: {item.vendorName}</span>
-              </span>
-            )}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+              <span>{item.category}</span>
+            </span>
           </div>
 
-          {/* Pizza Title */}
+          {/* Pizza Title & Price */}
           <div>
             <h1 className="font-heading text-3xl sm:text-4xl font-black text-stone-900 dark:text-white">
               {item.itemName}
@@ -362,8 +402,33 @@ export default function MenuItemDetailsPage({
             </p>
           </div>
 
+          {/* Vendor Information Card (Assignment 9 Requirement) */}
+          <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center shrink-0">
+                <StoreIcon size={20} />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">
+                  Vendor & Kitchen
+                </span>
+                <h4 className="font-heading font-bold text-sm text-stone-900 dark:text-white">
+                  {item.vendorName || "Artisan Pizza Partner"}
+                </h4>
+                {item.vendorEmail && (
+                  <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                    {item.vendorEmail}
+                  </p>
+                )}
+              </div>
+            </div>
+            <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 shrink-0">
+              Verified Partner
+            </span>
+          </div>
+
           {/* Highlights checklist */}
-          <div className="p-5 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700/60 space-y-3">
+          <div className="p-5 rounded-2xl bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
               Kitchen Highlights
             </h3>
@@ -419,11 +484,10 @@ export default function MenuItemDetailsPage({
       </div>
 
       {/* ========================================================================= */}
-      {/* POPUP ORDER MODAL                                                         */}
-      {/* ========================================================================= */}
+      {/* POPUP ORDER MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-6 sm:p-7 shadow-2xl space-y-5 my-8 max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto no-scrollbar">
+          <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-6 sm:p-7 shadow-2xl space-y-5 my-8 max-h-[92vh] overflow-y-auto no-scrollbar">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
               <div className="flex items-center gap-2">
@@ -450,212 +514,158 @@ export default function MenuItemDetailsPage({
               </button>
             </div>
 
-            {/* Pizza Item Summary Pill */}
-            <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200/80 dark:border-stone-700/80 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl overflow-hidden bg-stone-200 shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={currentDisplayImage}
-                    alt={item.itemName}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-stone-900 dark:text-white">
-                    {item.itemName}
-                  </h4>
-                  <p className="text-[11px] text-stone-500">{item.category}</p>
-                </div>
+            {/* Selected Pizza Card Summary */}
+            <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700/60">
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-stone-200 dark:bg-stone-700 shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={currentDisplayImage}
+                  alt={item.itemName}
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="text-right">
-                <span className="font-heading text-sm font-bold text-amber-600 dark:text-amber-400">
+              <div className="flex-1 min-w-0">
+                <h4 className="font-heading font-bold text-sm text-stone-900 dark:text-white truncate">
+                  {item.itemName}
+                </h4>
+                <p className="text-xs text-stone-500 truncate">
+                  {item.category} • {item.location}
+                </p>
+                <p className="text-xs font-bold text-amber-600 dark:text-amber-400 mt-0.5">
                   ${item.price?.toFixed(2)}
-                </span>
-                <p className="text-[10px] text-emerald-600 font-semibold">
-                  Free Delivery
                 </p>
               </div>
             </div>
 
-            {/* VISUAL PAYMENT CARD (Mastercard / Visa Simulation) */}
-            <div className="space-y-1.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-                Payment Method Preview
-              </span>
-              <div className="relative rounded-2xl bg-gradient-to-tr from-stone-950 via-stone-900 to-amber-950 text-white p-5 border border-amber-500/30 shadow-xl overflow-hidden space-y-4">
-                {/* Decorative glow */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-xl pointer-events-none" />
-
-                {/* Top: Chip & Brand Logo */}
-                <div className="flex items-center justify-between">
-                  {/* Gold Chip Mockup */}
-                  <div className="w-10 h-7 rounded-md bg-gradient-to-br from-amber-200 via-amber-400 to-amber-500 border border-amber-600/40 relative shadow-xs flex items-center justify-center">
-                    <div className="w-6 h-4 border border-amber-800/40 rounded-xs" />
-                  </div>
-
-                  {/* Mastercard Simulation Two Circles */}
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 rounded-full bg-red-600 opacity-90 -mr-2.5 shadow-sm" />
-                    <div className="w-6 h-6 rounded-full bg-amber-500 opacity-90 shadow-sm" />
-                  </div>
+            {/* Order Form */}
+            <form onSubmit={handleConfirmOrder} className="space-y-4">
+              {/* Customer Name & Email (Readonly) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    disabled
+                    value={user?.name || "Customer"}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-xs font-medium cursor-not-allowed"
+                  />
                 </div>
-
-                {/* Middle: Masked Card Number */}
-                <div className="pt-1">
-                  <p className="font-mono text-sm tracking-widest text-stone-200">
-                    &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;
-                    &bull;&bull;&bull;&bull; 8842
-                  </p>
-                </div>
-
-                {/* Bottom: Cardholder Name & Expiry */}
-                <div className="flex items-center justify-between text-[11px] text-stone-300 pt-1">
-                  <div>
-                    <span className="text-[9px] uppercase tracking-wider text-stone-400 block">
-                      Cardholder
-                    </span>
-                    <strong className="text-white uppercase truncate max-w-[180px] inline-block">
-                      {user?.name || "CUSTOMER"}
-                    </strong>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[9px] uppercase tracking-wider text-stone-400 block">
-                      Expires
-                    </span>
-                    <strong className="text-white">12/28</strong>
-                  </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                    Your Email
+                  </label>
+                  <input
+                    type="text"
+                    disabled
+                    value={user?.email || "customer@pizzahub.com"}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-xs font-medium cursor-not-allowed truncate"
+                  />
                 </div>
               </div>
-            </div>
 
-            {/* ORDER INPUT FORM */}
-            <form onSubmit={handleConfirmOrder} className="space-y-4 pt-1">
-              {/* Customer Email (Pre-filled from session) */}
-              <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
-                  Account Email
-                </label>
-                <input
-                  type="email"
-                  disabled
-                  value={user?.email || ""}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs text-stone-500 dark:text-stone-400 cursor-not-allowed"
-                />
-              </div>
-
-              {/* Mobile Phone Number */}
+              {/* Phone Number */}
               <div className="space-y-1">
                 <label
                   htmlFor="customerPhone"
-                  className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300"
+                  className="text-[11px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 flex items-center gap-1.5"
                 >
-                  Mobile Number <span className="text-red-500">*</span>
+                  <PhoneIcon size={12} className="text-red-500" />
+                  <span>Phone Number *</span>
                 </label>
-                <div className="relative">
-                  <PhoneIcon
-                    size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
-                  />
-                  <input
-                    id="customerPhone"
-                    type="tel"
-                    required
-                    placeholder="+880 1700-000000"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:border-red-500"
-                  />
-                </div>
-              </div>
-
-              {/* Delivery Date */}
-              <div className="space-y-1">
-                <label
-                  htmlFor="deliveryDate"
-                  className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300"
-                >
-                  Delivery Date <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <CalendarIcon
-                    size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
-                  />
-                  <input
-                    id="deliveryDate"
-                    type="date"
-                    required
-                    min={new Date().toISOString().split("T")[0]}
-                    value={deliveryDate}
-                    onChange={(e) => setDeliveryDate(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs text-stone-900 dark:text-white focus:outline-none focus:border-red-500"
-                  />
-                </div>
+                <input
+                  id="customerPhone"
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+880 1700 000000 or (555) 234-5678"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white placeholder:text-stone-400 text-xs focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all"
+                />
               </div>
 
               {/* Delivery Address */}
               <div className="space-y-1">
                 <label
                   htmlFor="deliveryAddress"
-                  className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300"
+                  className="text-[11px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 flex items-center gap-1.5"
                 >
-                  Delivery Address <span className="text-red-500">*</span>
+                  <MapPinIcon size={12} className="text-red-500" />
+                  <span>Delivery Destination Address *</span>
                 </label>
-                <div className="relative">
-                  <MapPinIcon
-                    size={16}
-                    className="absolute left-3.5 top-3 text-stone-400"
-                  />
-                  <textarea
-                    id="deliveryAddress"
-                    rows={2}
-                    required
-                    placeholder="House / Apartment #, Road #, Area, City"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:border-red-500"
-                  />
-                </div>
-              </div>
-
-              {/* Special Instructions (Optional) */}
-              <div className="space-y-1">
-                <label
-                  htmlFor="specialNotes"
-                  className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300"
-                >
-                  Special Notes (Optional)
-                </label>
-                <input
-                  id="specialNotes"
-                  type="text"
-                  placeholder="e.g. Extra napkins, please call upon arrival"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs text-stone-900 dark:text-white placeholder:text-stone-400 focus:outline-none focus:border-red-500"
+                <textarea
+                  id="deliveryAddress"
+                  required
+                  rows={2}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Street address, apartment or floor number, city..."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white placeholder:text-stone-400 text-xs focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all"
                 />
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-3 px-4 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-bold text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+              {/* Delivery Date */}
+              <div className="space-y-1">
+                <label
+                  htmlFor="deliveryDate"
+                  className="text-[11px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 flex items-center gap-1.5"
                 >
-                  Cancel
-                </button>
+                  <CalendarIcon size={12} className="text-red-500" />
+                  <span>Requested Delivery Date</span>
+                </label>
+                <input
+                  id="deliveryDate"
+                  type="date"
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all cursor-pointer"
+                />
+              </div>
+
+              {/* Special Instructions */}
+              <div className="space-y-1">
+                <label
+                  htmlFor="orderNotes"
+                  className="text-[11px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300"
+                >
+                  Special Notes / Delivery Instructions (Optional)
+                </label>
+                <input
+                  id="orderNotes"
+                  type="text"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g. Ring bell twice, extra napkins..."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white placeholder:text-stone-400 text-xs focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all"
+                />
+              </div>
+
+              {/* Total & Submit */}
+              <div className="pt-2 border-t border-stone-100 dark:border-stone-800 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-medium text-stone-500">Total Price:</span>
+                  <span className="font-heading font-black text-base text-stone-900 dark:text-white">
+                    ${item.price?.toFixed(2)}
+                  </span>
+                </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer disabled:opacity-75"
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-red-500/20 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
-                    <span>Placing Order...</span>
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                      <span>Confirming Order...</span>
+                    </>
                   ) : (
-                    <span>Confirm Order &bull; ${item.price?.toFixed(2)}</span>
+                    <>
+                      <CheckIcon size={16} />
+                      <span>Confirm & Place Order</span>
+                    </>
                   )}
                 </button>
               </div>
