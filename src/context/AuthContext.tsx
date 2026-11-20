@@ -14,6 +14,7 @@ export interface User {
   image?: string;
   businessName?: string;
   subscriptionPlan?: "free" | "premium";
+  isBlocked?: boolean;
 }
 
 interface AuthContextType {
@@ -47,6 +48,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         subscriptionPlan:
           ((session.user as unknown as Record<string, unknown>)
             .subscriptionPlan as "free" | "premium") || "free",
+        isBlocked: Boolean(
+          (session.user as unknown as Record<string, unknown>).isBlocked
+        ),
       }
     : null;
 

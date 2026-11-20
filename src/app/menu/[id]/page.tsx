@@ -44,6 +44,9 @@ export default function MenuItemDetailsPage({
   const { user, isLoggedIn } = useAuth();
   const toast = useToast();
 
+  // Role check: Admins and Vendors cannot place orders
+  const isAdminOrVendor = user?.role === "admin" || user?.role === "vendor";
+
   // Validate MongoDB ObjectId (24 hexadecimal characters)
   const isInvalidId = !id || !/^[0-9a-fA-F]{24}$/.test(id);
 
@@ -120,9 +123,22 @@ export default function MenuItemDetailsPage({
       return;
     }
 
-    // Prevent vendors from ordering their own pizzas
-    if (user?.email && item?.vendorEmail && user.email === item.vendorEmail) {
-      toast.error("You cannot order your own menu item.", "Vendor Restriction");
+    // Blocked accounts cannot place orders
+    if (user?.isBlocked) {
+      toast.error(
+        "Your account is suspended. You cannot place orders.",
+        "Account Blocked",
+      );
+      router.push("/blocked");
+      return;
+    }
+
+    // Admins and vendors cannot place food orders
+    if (isAdminOrVendor) {
+      toast.error(
+        `Ordering is disabled for ${user?.role === "admin" ? "Admins" : "Vendors"}. Only customers can order.`,
+        "Role Restriction",
+      );
       return;
     }
 
@@ -173,6 +189,24 @@ export default function MenuItemDetailsPage({
     e.preventDefault();
 
     if (!item) return;
+
+    // Blocked accounts cannot place orders
+    if (user?.isBlocked) {
+      toast.error(
+        "Your account is suspended. You cannot place orders.",
+        "Account Blocked",
+      );
+      router.push("/blocked");
+      return;
+    }
+
+    if (isAdminOrVendor) {
+      toast.error(
+        "Admins and vendors cannot place orders.",
+        "Role Restriction",
+      );
+      return;
+    }
 
     if (!phone.trim()) {
       toast.warning("Please enter your mobile phone number.", "Phone Required");
@@ -226,6 +260,9 @@ export default function MenuItemDetailsPage({
           resData.message || "Failed to place order. Please try again.",
           "Order Blocked",
         );
+        if (res.status === 403) {
+          router.push("/blocked");
+        }
         return;
       }
 
@@ -423,15 +460,28 @@ export default function MenuItemDetailsPage({
           </div>
 
           {/* Order Action & Favorite Heart Button */}
-          <div className="pt-2 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleOpenOrderModal}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-sm uppercase tracking-wider shadow-lg hover:shadow-red-500/25 hover:-translate-y-0.5 transition-all cursor-pointer"
-            >
-              <ShoppingBagIcon size={20} />
-              <span>Order Now &bull; ${item.price?.toFixed(2)}</span>
-            </button>
+          <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-3">
+            {isAdminOrVendor ? (
+              <div className="flex-1 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-2.5">
+                <StoreIcon size={18} className="shrink-0 text-amber-600" />
+                <span>
+                  Ordering is disabled for{" "}
+                  <strong className="capitalize">
+                    {user?.role || "Staff"}
+                  </strong>
+                  s. Only customer accounts can place food orders.
+                </span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleOpenOrderModal}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-sm uppercase tracking-wider shadow-lg hover:shadow-red-500/25 hover:-translate-y-0.5 transition-all cursor-pointer"
+              >
+                <ShoppingBagIcon size={20} />
+                <span>Order Now &bull; ${item.price?.toFixed(2)}</span>
+              </button>
+            )}
 
             {/* Favorite / Heart Button */}
             <button
