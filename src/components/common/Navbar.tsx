@@ -14,6 +14,7 @@ import {
   MenuIcon,
   CloseIcon,
 } from "@/components/ui/Icons";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
@@ -119,7 +120,10 @@ export const Navbar: React.FC = () => {
           </nav>
 
           {/* Right Action Bar */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Theme Toggle Button */}
+            <ThemeToggle />
+
             {/* Auth State Conditional UI */}
             {isLoggedIn && user ? (
               /* Logged In: Profile Dropdown */
@@ -296,6 +300,12 @@ export const Navbar: React.FC = () => {
                 Dashboard
               </Link>
             )}
+
+            {/* Mobile Theme Toggle */}
+            <div className="pt-2 px-3 flex items-center justify-between border-t border-stone-100 dark:border-stone-800">
+              <span className="text-sm font-semibold text-stone-700 dark:text-stone-300">Theme</span>
+              <ThemeToggle showLabel />
+            </div>
           </nav>
 
           {/* Mobile Auth Actions */}

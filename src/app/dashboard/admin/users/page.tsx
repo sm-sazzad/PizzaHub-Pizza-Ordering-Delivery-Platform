@@ -8,6 +8,7 @@ import {
   EyeIcon,
   CloseIcon,
 } from "@/components/ui/Icons";
+import { getTokenClient } from "@/lib/tokenAccess";
 
 interface UserItem {
   _id: string;
@@ -41,7 +42,11 @@ export default function AdminUsersPage() {
       try {
         const serverUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const res = await fetch(`${serverUrl}/admin/users`);
+        const res = await fetch(`${serverUrl}/admin/users`, {
+          headers: {
+            authorization: `Bearer ${await getTokenClient()}`,
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           setUsers(Array.isArray(data) ? data : []);
@@ -63,7 +68,10 @@ export default function AdminUsersPage() {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/admin/users/${id}/block`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${await getTokenClient()}`,
+        },
         body: JSON.stringify({ isBlocked: nextState }),
       });
     } catch {
@@ -89,7 +97,10 @@ export default function AdminUsersPage() {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/admin/users/${roleModalUser._id}/role`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${await getTokenClient()}`,
+        },
         body: JSON.stringify({ role: newRole }),
       });
     } catch {

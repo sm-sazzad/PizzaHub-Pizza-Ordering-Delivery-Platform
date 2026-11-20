@@ -10,6 +10,7 @@ import {
   CalendarIcon,
   RefreshIcon,
 } from "@/components/ui/Icons";
+import { getTokenClient } from "@/lib/tokenAccess";
 
 // 1. Simple Interface for Transaction Item
 interface TransactionItem {
@@ -41,7 +42,11 @@ export default function AdminTransactionsPage() {
       try {
         const serverUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const res = await fetch(`${serverUrl}/admin/transactions`);
+        const res = await fetch(`${serverUrl}/admin/transactions`, {
+          headers: {
+            authorization: `Bearer ${await getTokenClient()}`,
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           setTransactions(Array.isArray(data) ? data : []);

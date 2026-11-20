@@ -9,6 +9,7 @@ import {
   CheckIcon,
   RefreshIcon,
 } from "@/components/ui/Icons";
+import { getTokenClient } from "@/lib/tokenAccess";
 
 // 1. Simple Interface for Menu Item
 interface MenuItem {
@@ -43,7 +44,11 @@ export default function AdminMenuPage() {
       try {
         const serverUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-        const res = await fetch(`${serverUrl}/admin/menu`);
+        const res = await fetch(`${serverUrl}/admin/menu`, {
+          headers: {
+            authorization: `Bearer ${await getTokenClient()}`,
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           setItems(Array.isArray(data) ? data : []);
@@ -69,7 +74,10 @@ export default function AdminMenuPage() {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/menu/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${await getTokenClient()}`,
+        },
         body: JSON.stringify({ status: nextStatus }),
       });
     } catch {
