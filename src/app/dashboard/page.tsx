@@ -15,6 +15,8 @@ import {
   CreditCardIcon,
   AlertCircleIcon,
   ShieldCheckIcon,
+  StoreIcon,
+  TrendingUpIcon,
 } from "@/components/ui/Icons";
 
 function CustomerOverview({
@@ -648,7 +650,32 @@ function AdminOverview({
   const totalCustomers = users.filter((u) => u.role === "customer" || !u.role).length;
   const totalMenuItems = menuItems.length;
   const pendingItems = menuItems.filter((m) => m.status === "pending").length;
+  const approvedMenuItems = Math.max(totalMenuItems - pendingItems, 0);
   const totalTransactions = users.filter((u) => u.subscriptionPlan === "premium").length;
+
+  // Bar Chart Data for the 6 core metrics
+  const chartBars = [
+    { label: "Total Users", value: totalUsers, color: "bg-purple-600" },
+    { label: "Vendors", value: totalVendors, color: "bg-amber-500" },
+    { label: "Customers", value: totalCustomers, color: "bg-emerald-500" },
+    { label: "Menu Items", value: totalMenuItems, color: "bg-red-500" },
+    { label: "Pending", value: pendingItems, color: "bg-orange-500" },
+    { label: "Transactions", value: totalTransactions, color: "bg-blue-600" },
+  ];
+
+  // Maximum value for scaling bar heights
+  const maxBarValue = Math.max(...chartBars.map((b) => b.value), 1);
+
+  // Percentages for distribution graphs
+  const userTotal = Math.max(totalVendors + totalCustomers, 1);
+  const vendorPercent = Math.round((totalVendors / userTotal) * 100);
+  const customerPercent = 100 - vendorPercent;
+
+  const menuTotal = Math.max(totalMenuItems, 1);
+  const approvedPercent = Math.round((approvedMenuItems / menuTotal) * 100);
+  const pendingPercent = 100 - approvedPercent;
+
+  const premiumPercent = totalUsers > 0 ? Math.round((totalTransactions / totalUsers) * 100) : 0;
 
   return (
     <div className="space-y-8">
@@ -675,72 +702,315 @@ function AdminOverview({
         </div>
       </div>
 
-      {/* 6 Stat Cards (Assignment 9 PDF Page 8) */}
+      {/* 6 Stat Cards (Assignment 9 PDF Requirements) */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {/* Total Users */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
-            Total Users
-          </span>
-          <span className="text-2xl font-black text-stone-900 dark:text-white font-heading">
-            {loading ? "..." : totalUsers}
-          </span>
-          <span className="text-[11px] text-stone-400 block mt-1">All accounts</span>
+        {/* 1. Total Registered Users */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">
+              Total Users
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
+              <UsersIcon size={14} />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-black text-stone-900 dark:text-white font-heading">
+              {loading ? "..." : totalUsers}
+            </span>
+            <span className="text-[11px] text-stone-400 block mt-0.5">
+              Registered users
+            </span>
+          </div>
         </div>
 
-        {/* Vendors */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 block mb-1">
-            Vendors
-          </span>
-          <span className="text-2xl font-black text-amber-600 font-heading">
-            {loading ? "..." : totalVendors}
-          </span>
-          <span className="text-[11px] text-stone-400 block mt-1">Kitchen partners</span>
+        {/* 2. Total Vendors */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">
+              Total Vendors
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+              <StoreIcon size={14} />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-black text-amber-600 font-heading">
+              {loading ? "..." : totalVendors}
+            </span>
+            <span className="text-[11px] text-stone-400 block mt-0.5">
+              Kitchen partners
+            </span>
+          </div>
         </div>
 
-        {/* Customers */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block mb-1">
-            Customers
-          </span>
-          <span className="text-2xl font-black text-emerald-600 font-heading">
-            {loading ? "..." : totalCustomers}
-          </span>
-          <span className="text-[11px] text-stone-400 block mt-1">Food lovers</span>
+        {/* 3. Total Customers */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+              Total Customers
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <ShoppingBagIcon size={14} />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-black text-emerald-600 font-heading">
+              {loading ? "..." : totalCustomers}
+            </span>
+            <span className="text-[11px] text-stone-400 block mt-0.5">
+              Active foodies
+            </span>
+          </div>
         </div>
 
-        {/* Menu Items */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 block mb-1">
-            Menu Items
-          </span>
-          <span className="text-2xl font-black text-red-600 font-heading">
-            {loading ? "..." : totalMenuItems}
-          </span>
-          <span className="text-[11px] text-stone-400 block mt-1">Total pizzas</span>
+        {/* 4. Total Menu Items */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-red-600">
+              Menu Items
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center">
+              <PizzaIcon size={14} />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-black text-red-600 font-heading">
+              {loading ? "..." : totalMenuItems}
+            </span>
+            <span className="text-[11px] text-stone-400 block mt-0.5">
+              Total pizzas
+            </span>
+          </div>
         </div>
 
-        {/* Pending Items */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 block mb-1">
-            Pending Items
-          </span>
-          <span className="text-2xl font-black text-orange-600 font-heading">
-            {loading ? "..." : pendingItems}
-          </span>
-          <span className="text-[11px] text-stone-400 block mt-1">Need review</span>
+        {/* 5. Pending Menu Items */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600">
+              Pending Items
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center">
+              <ClockIcon size={14} />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-black text-orange-600 font-heading">
+              {loading ? "..." : pendingItems}
+            </span>
+            <span className="text-[11px] text-stone-400 block mt-0.5">
+              Need review
+            </span>
+          </div>
         </div>
 
-        {/* Transactions */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 block mb-1">
-            Transactions
-          </span>
-          <span className="text-2xl font-black text-blue-600 font-heading">
-            {loading ? "..." : totalTransactions}
-          </span>
-          <span className="text-[11px] text-stone-400 block mt-1">Premium upgrades</span>
+        {/* 6. Total Transactions */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
+              Transactions
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+              <CreditCardIcon size={14} />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-black text-blue-600 font-heading">
+              {loading ? "..." : totalTransactions}
+            </span>
+            <span className="text-[11px] text-stone-400 block mt-0.5">
+              Premium upgrades
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts & Graphs Section (Assignment 9 Analytics) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Bar Chart: 6 Metrics Visual Comparison */}
+        <div className="lg:col-span-2 p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-1 rounded-md bg-purple-500/10 text-purple-600">
+                  <TrendingUpIcon size={16} />
+                </span>
+                <h3 className="font-heading text-base font-bold text-stone-900 dark:text-white">
+                  Platform Statistics Bar Chart
+                </h3>
+              </div>
+              <p className="text-xs text-stone-500 mt-1">
+                Visual comparison of registered users, menu items, and subscription transactions
+              </p>
+            </div>
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+              Live Data
+            </span>
+          </div>
+
+          {/* Bar Chart Container */}
+          <div className="h-64 flex items-end justify-between gap-2 sm:gap-4 pt-8 pb-2 px-2 border-b border-stone-100 dark:border-stone-800">
+            {chartBars.map((bar) => {
+              // Calculate bar height in percentage (min 8% so bar is visible)
+              const heightPercent =
+                maxBarValue > 0
+                  ? Math.max(Math.round((bar.value / maxBarValue) * 100), 8)
+                  : 8;
+
+              return (
+                <div
+                  key={bar.label}
+                  className="flex-1 flex flex-col items-center h-full justify-end group"
+                >
+                  {/* Value tag above bar */}
+                  <span className="text-[11px] font-bold font-mono text-stone-700 dark:text-stone-300 mb-1.5 transition-transform group-hover:-translate-y-0.5">
+                    {loading ? "..." : bar.value}
+                  </span>
+
+                  {/* The Vertical Bar */}
+                  <div className="w-full max-w-[44px] bg-stone-100 dark:bg-stone-800/80 rounded-2xl p-1 flex items-end h-full">
+                    <div
+                      style={{ height: `${heightPercent}%` }}
+                      className={`w-full rounded-xl transition-all duration-500 ${bar.color}`}
+                    />
+                  </div>
+
+                  {/* Label below bar */}
+                  <span className="text-[10px] sm:text-[11px] font-bold text-stone-500 dark:text-stone-400 mt-2 text-center truncate max-w-full">
+                    {bar.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Chart Legend */}
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-4 pt-2 text-[11px] text-stone-500">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-purple-600" /> Users
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Vendors
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Customers
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Menu Items
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-orange-500" /> Pending
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-600" /> Transactions
+            </span>
+          </div>
+        </div>
+
+        {/* Side Breakdown Charts: Distribution & Status */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="font-heading text-base font-bold text-stone-900 dark:text-white mb-1">
+              Distribution Ratios
+            </h3>
+            <p className="text-xs text-stone-500 mb-6">
+              Platform proportions and breakdown
+            </p>
+
+            <div className="space-y-6">
+              {/* 1. User Distribution (Vendors vs Customers) */}
+              <div>
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="font-bold text-stone-700 dark:text-stone-300">
+                    Users: Vendors vs Customers
+                  </span>
+                  <span className="text-stone-400 font-mono text-[11px]">
+                    {totalVendors} / {totalCustomers}
+                  </span>
+                </div>
+                {/* Visual Ratio Bar */}
+                <div className="w-full h-3 rounded-full bg-stone-100 dark:bg-stone-800 overflow-hidden flex">
+                  <div
+                    style={{ width: `${vendorPercent}%` }}
+                    className="bg-amber-500 h-full transition-all duration-500"
+                    title={`Vendors: ${vendorPercent}%`}
+                  />
+                  <div
+                    style={{ width: `${customerPercent}%` }}
+                    className="bg-emerald-500 h-full transition-all duration-500"
+                    title={`Customers: ${customerPercent}%`}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-stone-500 mt-1.5">
+                  <span className="text-amber-500 font-semibold">Vendors ({vendorPercent}%)</span>
+                  <span className="text-emerald-500 font-semibold">Customers ({customerPercent}%)</span>
+                </div>
+              </div>
+
+              {/* 2. Menu Items Status (Approved vs Pending) */}
+              <div>
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="font-bold text-stone-700 dark:text-stone-300">
+                    Menu: Approved vs Pending
+                  </span>
+                  <span className="text-stone-400 font-mono text-[11px]">
+                    {approvedMenuItems} / {pendingItems}
+                  </span>
+                </div>
+                {/* Visual Ratio Bar */}
+                <div className="w-full h-3 rounded-full bg-stone-100 dark:bg-stone-800 overflow-hidden flex">
+                  <div
+                    style={{ width: `${approvedPercent}%` }}
+                    className="bg-emerald-500 h-full transition-all duration-500"
+                    title={`Approved: ${approvedPercent}%`}
+                  />
+                  <div
+                    style={{ width: `${pendingPercent}%` }}
+                    className="bg-orange-500 h-full transition-all duration-500"
+                    title={`Pending: ${pendingPercent}%`}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-stone-500 mt-1.5">
+                  <span className="text-emerald-500 font-semibold">Approved ({approvedPercent}%)</span>
+                  <span className="text-orange-500 font-semibold">Pending ({pendingPercent}%)</span>
+                </div>
+              </div>
+
+              {/* 3. Monetization: Premium Subscriptions */}
+              <div>
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="font-bold text-stone-700 dark:text-stone-300">
+                    Subscription Conversion
+                  </span>
+                  <span className="text-stone-400 font-mono text-[11px]">
+                    {totalTransactions} premium
+                  </span>
+                </div>
+                {/* Visual Ratio Bar */}
+                <div className="w-full h-3 rounded-full bg-stone-100 dark:bg-stone-800 overflow-hidden flex">
+                  <div
+                    style={{ width: `${premiumPercent}%` }}
+                    className="bg-blue-600 h-full transition-all duration-500"
+                    title={`Premium: ${premiumPercent}%`}
+                  />
+                  <div
+                    style={{ width: `${100 - premiumPercent}%` }}
+                    className="bg-stone-300 dark:bg-stone-700 h-full transition-all duration-500"
+                    title={`Standard: ${100 - premiumPercent}%`}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-stone-500 mt-1.5">
+                  <span className="text-blue-500 font-semibold">Premium ({premiumPercent}%)</span>
+                  <span className="text-stone-400">Standard ({100 - premiumPercent}%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-stone-100 dark:border-stone-800 text-[11px] text-stone-400 flex items-center justify-between">
+            <span>Assignment 9 Analytics</span>
+            <span className="font-semibold text-emerald-500">Auto-calculated</span>
+          </div>
         </div>
       </div>
 
