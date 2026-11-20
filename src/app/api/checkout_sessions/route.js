@@ -28,7 +28,7 @@ export async function POST() {
       mode: "payment",
       customer_email: userEmail,
       success_url: `${origin}/dashboard/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/dashboard/subscription`,
+      cancel_url: `${origin}/dashboard/subscription/cancel`,
       // Provide a name (for example, hosted_web_0001) to label this Checkout integration and measure its conversion independently
       integration_identifier: "PizzaHub",
     });

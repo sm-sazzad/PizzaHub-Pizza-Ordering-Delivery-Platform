@@ -12,6 +12,7 @@ import {
   PhoneIcon,
   MailIcon,
   ShieldCheckIcon,
+  ClockIcon,
 } from "@/components/ui/Icons";
 
 export const Footer: React.FC = () => {
@@ -34,9 +35,10 @@ export const Footer: React.FC = () => {
             </Link>
 
             <p className="text-stone-400 text-sm leading-relaxed max-w-sm">
-              The premier platform connecting passionate foodies with independent artisan pizzerias.
-              Handcrafted stone-baked pizzas, authentic buffalo mozzarella, and blistered crusts
-              delivered fresh to your doorstep.
+              The premier platform connecting passionate foodies with
+              independent artisan pizzerias. Handcrafted stone-baked pizzas,
+              authentic buffalo mozzarella, and blistered crusts delivered fresh
+              to your doorstep.
             </p>
 
             {/* Social Media Links with explicit new X logo */}
@@ -83,10 +85,10 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Col 2: Navigation Links (3 cols) */}
+          {/* Col 2: Useful Links (3 cols) */}
           <div className="lg:col-span-3 space-y-4">
             <h4 className="font-heading text-sm font-bold uppercase tracking-wider text-white">
-              Navigation
+              Useful Links
             </h4>
             <ul className="space-y-2.5 text-sm">
               <li>
@@ -103,6 +105,14 @@ export const Footer: React.FC = () => {
                   className="text-stone-400 hover:text-white hover:underline transition-colors"
                 >
                   Browse Pizza Menu
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/dashboard/my-orders"
+                  className="text-stone-400 hover:text-white hover:underline transition-colors"
+                >
+                  My Order History
                 </Link>
               </li>
               <li>
@@ -148,7 +158,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link
-                  href="/pricing"
+                  href="/dashboard/subscription"
                   className="text-stone-400 hover:text-white hover:underline transition-colors"
                 >
                   Subscription Plans
@@ -167,33 +177,43 @@ export const Footer: React.FC = () => {
                   href="/dashboard/vendor-orders"
                   className="text-stone-400 hover:text-white hover:underline transition-colors"
                 >
-                  Incoming Orders
+                  Customer Orders Queue
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Contact & Support (3 cols) */}
+          {/* Col 4: Contact Info (3 cols) */}
           <div className="lg:col-span-3 space-y-4">
             <h4 className="font-heading text-sm font-bold uppercase tracking-wider text-white">
-              Contact & Support
+              Contact Info
             </h4>
             <ul className="space-y-3 text-sm text-stone-400">
               <li className="flex items-start gap-2.5">
-                <MapPinIcon size={18} className="text-red-500 shrink-0 mt-0.5" />
+                <MapPinIcon
+                  size={18}
+                  className="text-red-500 shrink-0 mt-0.5"
+                />
                 <span>Via Toledo 42, Artisan Food District, Dhaka / Rome</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <PhoneIcon size={18} className="text-amber-500 shrink-0" />
-                <span>+880 1700-PIZZAHUB</span>
+                <span>+880 1700-PIZZAHUB (9 AM - 11 PM)</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <MailIcon size={18} className="text-emerald-500 shrink-0" />
                 <span>support@pizzahub.io</span>
               </li>
-              <li className="pt-2">
+              <li className="flex items-center gap-2.5">
+                <ClockIcon size={18} className="text-amber-400 shrink-0" />
+                <span>Open Daily: 10:00 AM – 11:30 PM</span>
+              </li>
+              <li className="pt-1">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-stone-300">
-                  <ShieldCheckIcon size={16} className="text-emerald-400 shrink-0" />
+                  <ShieldCheckIcon
+                    size={16}
+                    className="text-emerald-400 shrink-0"
+                  />
                   <span>Stripe Verified & SSL Encrypted</span>
                 </div>
               </li>
@@ -204,16 +224,25 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar: Copyright & Terms */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
           <p>
-            &copy; {new Date().getFullYear()} PizzaHub Inc. All rights reserved. Built for Assignment 9.
+            &copy; {new Date().getFullYear()} PizzaHub Inc. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="hover:text-stone-400 transition-colors">
+            <Link
+              href="/privacy"
+              className="hover:text-stone-400 transition-colors"
+            >
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-stone-400 transition-colors">
+            <Link
+              href="/terms"
+              className="hover:text-stone-400 transition-colors"
+            >
               Terms of Service
             </Link>
-            <Link href="/cookies" className="hover:text-stone-400 transition-colors">
+            <Link
+              href="/cookies"
+              className="hover:text-stone-400 transition-colors"
+            >
               Cookie Preferences
             </Link>
           </div>

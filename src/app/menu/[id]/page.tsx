@@ -61,8 +61,8 @@ export default function MenuItemDetailsPage({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [deliveryDate, setDeliveryDate] = useState(() =>
-    new Date().toISOString().split("T")[0],
+  const [deliveryDate, setDeliveryDate] = useState(
+    () => new Date().toISOString().split("T")[0],
   );
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -218,21 +218,33 @@ export default function MenuItemDetailsPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
       });
+
       const resData = await res.json();
+
+      // If backend blocked duplicate active order (status 409 or other error)
+      if (!res.ok) {
+        toast.error(
+          resData.message || "Failed to place order. Please try again.",
+          "Order Blocked",
+        );
+        return;
+      }
+
       if (resData.insertedId) {
         toast.success(
           `Your order for "${item.itemName}" was placed successfully!`,
           "Order Confirmed",
         );
+        setIsModalOpen(false);
+        setPhone("");
+        setAddress("");
+        setNotes("");
       }
     } catch (error) {
-      console.log("Order submitted to client state:", error);
+      console.log("Order error:", error);
+      toast.error("Failed to submit order. Please try again.", "Order Failed");
     } finally {
       setIsSubmitting(false);
-      setIsModalOpen(false);
-      setPhone("");
-      setAddress("");
-      setNotes("");
     }
   };
 
@@ -645,7 +657,9 @@ export default function MenuItemDetailsPage({
               {/* Total & Submit */}
               <div className="pt-2 border-t border-stone-100 dark:border-stone-800 space-y-3">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-stone-500">Total Price:</span>
+                  <span className="font-medium text-stone-500">
+                    Total Price:
+                  </span>
                   <span className="font-heading font-black text-base text-stone-900 dark:text-white">
                     ${item.price?.toFixed(2)}
                   </span>
