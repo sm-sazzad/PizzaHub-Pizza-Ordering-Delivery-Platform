@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   PizzaIcon,
   SearchIcon,
@@ -32,13 +33,26 @@ const CATEGORIES = [
   "Beverages & Desserts",
 ];
 
-export default function BrowseMenuPage() {
+function BrowseMenuContent() {
+  const searchParams = useSearchParams();
+  const categoryFromUrl = searchParams.get("category");
+
+  // Derive initial active category from URL parameter (if user arrived from homepage category click)
+  const activeUrlCategory = categoryFromUrl
+    ? CATEGORIES.find(
+        (cat) => cat.toLowerCase() === categoryFromUrl.toLowerCase(),
+      ) || "All"
+    : null;
+
   // 1. Simple states for items, loading, search, category, and sorting
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState("default");
+
+  // Current active category: manual selection takes precedence over URL parameter, fallback to "All"
+  const currentCategory = selectedCategory ?? activeUrlCategory ?? "All";
 
   // 2. Fetch all menu items from API endpoint /menu
   useEffect(() => {
@@ -65,7 +79,7 @@ export default function BrowseMenuPage() {
       ?.toLowerCase()
       .includes(search.toLowerCase());
     const categoryMatches =
-      selectedCategory === "All" || item.category === selectedCategory;
+      currentCategory === "All" || item.category === currentCategory;
 
     return nameMatches && categoryMatches;
   });
@@ -126,7 +140,7 @@ export default function BrowseMenuPage() {
         <div className="pt-2 border-t border-stone-100 dark:border-stone-800">
           <div className="flex flex-wrap items-center gap-2">
             {CATEGORIES.map((cat) => {
-              const isSelected = selectedCategory === cat;
+              const isSelected = currentCategory === cat;
               return (
                 <button
                   key={cat}
@@ -236,5 +250,22 @@ export default function BrowseMenuPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function BrowseMenuPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto py-20 px-4 text-center">
+          <div className="w-10 h-10 border-4 border-red-500/20 border-t-red-600 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-xs font-semibold text-stone-500">
+            Loading pizza menu...
+          </p>
+        </div>
+      }
+    >
+      <BrowseMenuContent />
+    </Suspense>
   );
 }

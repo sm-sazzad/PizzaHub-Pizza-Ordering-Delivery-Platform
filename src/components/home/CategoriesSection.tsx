@@ -47,7 +47,7 @@ const CATEGORIES: CategoryItem[] = [
   },
   {
     id: "cat-4",
-    name: "Specialty / Gourmet",
+    name: "Specialty / Gourmet Pizzas",
     slug: "specialty-gourmet",
     tagline: "Black summer truffles, fig & gorgonzola, smoked duck, and burrata crumbles.",
     itemCount: "14 Varieties",

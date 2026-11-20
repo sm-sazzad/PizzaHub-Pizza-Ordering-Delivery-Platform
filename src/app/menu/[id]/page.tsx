@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, notFound } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 import {
@@ -18,7 +18,6 @@ import {
   HeartIcon,
   CalendarIcon,
   StoreIcon,
-  AlertCircleIcon,
 } from "@/components/ui/Icons";
 
 // Data shape for single pizza item
@@ -248,53 +247,9 @@ export default function MenuItemDetailsPage({
     }
   };
 
-  // 1. Invalid or Not Found Error State (Assignment 9 Requirement)
+  // 1. If ID is invalid or item is not found, trigger Next.js notFound()
   if (isInvalidId || isNotFound) {
-    return (
-      <div className="max-w-xl mx-auto py-20 px-4 text-center space-y-5">
-        <div className="w-16 h-16 rounded-3xl bg-rose-500/10 text-rose-500 border border-rose-500/20 flex items-center justify-center mx-auto shadow-sm">
-          <AlertCircleIcon size={32} />
-        </div>
-
-        <div>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-rose-500 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">
-            {isInvalidId ? "Invalid Item ID" : "Pizza Not Found"}
-          </span>
-          <h2 className="font-heading text-2xl sm:text-3xl font-black text-stone-900 dark:text-white mt-3">
-            পিৎজা আইটেম পাওয়া যায়নি
-          </h2>
-          <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-2 max-w-md mx-auto leading-relaxed">
-            {isInvalidId
-              ? "প্রদত্ত Item ID-টি ইনভ্যালিড। MongoDB ObjectId অবশ্যই ২৪ ক্যারেক্টারের হেক্সাডেসিমেল স্ট্রিং হতে হবে।"
-              : "অনুরোধকৃত পিৎজা রেসিপিটি মেনু ক্যাটালগে নেই অথবা ডাটাবেজ থেকে সরিয়ে ফেলা হয়েছে।"}
-          </p>
-        </div>
-
-        {/* Monospace ID Badge */}
-        <div className="p-3.5 rounded-2xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-xs font-mono text-stone-600 dark:text-stone-400 max-w-sm mx-auto flex items-center justify-between">
-          <span>Requested ID:</span>
-          <span className="font-bold text-rose-500 truncate max-w-[200px]">
-            {id || "None"}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-center gap-3 pt-2">
-          <Link
-            href="/menu"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
-          >
-            <PizzaIcon size={16} />
-            <span>সব মেনু দেখুন</span>
-          </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 font-bold text-xs uppercase tracking-wider transition-colors"
-          >
-            <span>হোমে যান</span>
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   // 2. Loading State
