@@ -27,6 +27,7 @@ export interface CustomerOrder {
   price: number;
   deliveryDate: string;
   deliveryAddress: string;
+  customerMessage?: string;
   status:
     | "pending"
     | "accepted"
@@ -94,6 +95,11 @@ export default function CustomerOrdersPage() {
                 id: o._id || o.id || `order-${idx}`,
                 menuItemId: o.menuItemId || o.itemId,
                 deliveryDate: formattedDate,
+                customerMessage:
+                  o.customerMessage ||
+                  (o as { specialNotes?: string }).specialNotes ||
+                  (o as { notes?: string }).notes ||
+                  "",
               };
             }),
           );
@@ -311,6 +317,14 @@ export default function CustomerOrdersPage() {
                       </span>
                     </span>
                   </div>
+
+                  {order.customerMessage && (
+                    <div className="pt-1">
+                      <span className="text-[11px] text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20 italic inline-block">
+                        Note: &ldquo;{order.customerMessage}&rdquo;
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex sm:items-center justify-between lg:justify-end gap-4 pt-3 lg:pt-0 border-t lg:border-t-0 border-stone-100 dark:border-stone-800 shrink-0">

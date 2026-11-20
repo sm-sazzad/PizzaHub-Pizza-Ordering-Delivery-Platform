@@ -4,12 +4,24 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
+import { uploadToImgBB } from "@/lib/uploadImage";
 import {
   PizzaIcon,
   PlusCircleIcon,
   SparklesIcon,
   AlertCircleIcon,
+  CloseIcon,
+  CheckIcon,
 } from "@/components/ui/Icons";
+
+const CATEGORIES = [
+  "Classic Pizzas",
+  "Vegetarian Pizzas",
+  "Meat Lovers",
+  "Specialty / Gourmet Pizzas",
+  "Sides & Appetizers",
+  "Beverages & Desserts",
+];
 
 interface MenuItem {
   id: string;
@@ -17,7 +29,9 @@ interface MenuItem {
   category: string;
   price: number;
   location: string;
+  description?: string;
   image: string;
+  images?: string[];
   status: "pending" | "approved" | "rejected" | "inactive";
   createdAt: string;
 }
@@ -26,17 +40,34 @@ export default function MyMenuItemsPage() {
   const { user } = useAuth();
   const toast = useToast();
 
-  // Real items state - starts empty until fetched from MongoDB / Express backend
+  // 1. Items and loading state
   const [items, setItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Confirmation dialog state for item deletion
+  // 2. Delete Confirmation state
   const [itemToDelete, setItemToDelete] = useState<{
     id: string;
     name: string;
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // 3. Edit Modal state
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [editForm, setEditForm] = useState({
+    itemName: "",
+    price: "",
+    category: CATEGORIES[0],
+    location: "",
+    description: "",
+    image: "",
+  });
+  // Multiple images support in Edit Modal
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
+  const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+  // 4. Fetch vendor menu items
   useEffect(() => {
     const fetchVendorMenuItems = async () => {
       if (!user?.email) return;
@@ -60,23 +91,33 @@ export default function MyMenuItemsPage() {
                 category?: string;
                 price?: number;
                 location?: string;
+                description?: string;
                 images?: string[];
                 image?: string;
                 status?: MenuItem["status"];
                 createdAt?: string;
-              }) => ({
-                id: it._id || it.id || "",
-                name: it.itemName || it.name || "Artisan Pizza",
-                category: it.category || "Classic Pizzas",
-                price: typeof it.price === "number" ? it.price : 0,
-                location: it.location || "Kitchen",
-                image:
-                  it.images?.[0] ||
-                  it.image ||
-                  "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80",
-                status: it.status || "pending",
-                createdAt: it.createdAt || new Date().toISOString(),
-              }),
+              }) => {
+                const itemImages =
+                  Array.isArray(it.images) && it.images.length > 0
+                    ? it.images
+                    : it.image
+                      ? [it.image]
+                      : [
+                          "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80",
+                        ];
+                return {
+                  id: it._id || it.id || "",
+                  name: it.itemName || it.name || "Artisan Pizza",
+                  category: it.category || "Classic Pizzas",
+                  price: typeof it.price === "number" ? it.price : 0,
+                  location: it.location || "Kitchen",
+                  description: it.description || "",
+                  images: itemImages,
+                  image: itemImages[0],
+                  status: it.status || "pending",
+                  createdAt: it.createdAt || new Date().toISOString(),
+                };
+              },
             ),
           );
         }
@@ -103,7 +144,149 @@ export default function MyMenuItemsPage() {
     }
   };
 
-  // Confirm and execute item deletion from backend
+  // 5. Open Edit Modal with all existing images
+  const handleOpenEditModal = (item: MenuItem) => {
+    setEditingItem(item);
+    const existing =
+      item.images && item.images.length > 0 ? [...item.images] : [item.image];
+    setExistingImages(existing);
+    setNewImageFiles([]);
+    setNewImagePreviews([]);
+    setEditForm({
+      itemName: item.name,
+      price: item.price.toString(),
+      category: item.category || CATEGORIES[0],
+      location: item.location || "",
+      description: item.description || "",
+      image: item.image || "",
+    });
+  };
+
+  // Add one or multiple new photo files from computer
+  const handleAddEditFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const validFiles: File[] = [];
+    const validPreviews: string[] = [];
+
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith("image/")) {
+        toast.warning(`"${file.name}" is not an image file.`, "Invalid File");
+        return;
+      }
+      validFiles.push(file);
+      validPreviews.push(URL.createObjectURL(file));
+    });
+
+    if (validFiles.length > 0) {
+      setNewImageFiles((prev) => [...prev, ...validFiles]);
+      setNewImagePreviews((prev) => [...prev, ...validPreviews]);
+    }
+  };
+
+  // Remove an existing photo
+  const handleRemoveExistingImage = (indexToRemove: number) => {
+    setExistingImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  // Remove a newly added photo
+  const handleRemoveNewImage = (indexToRemove: number) => {
+    setNewImageFiles((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+    setNewImagePreviews((prev) =>
+      prev.filter((_, idx) => idx !== indexToRemove),
+    );
+  };
+
+  // 6. Save Edit Changes
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+
+    // Check if at least one photo exists
+    if (existingImages.length === 0 && newImageFiles.length === 0) {
+      toast.error(
+        "Please provide at least one photo for this pizza.",
+        "Image Required",
+      );
+      return;
+    }
+
+    setIsSavingEdit(true);
+
+    try {
+      // 1. Upload any newly added image files to ImgBB
+      const uploadedUrls: string[] = [];
+      for (const file of newImageFiles) {
+        try {
+          const url = await uploadToImgBB(file);
+          uploadedUrls.push(url);
+        } catch (uploadError) {
+          console.error("ImgBB upload error:", uploadError);
+        }
+      }
+
+      // 2. Combine kept existing images with newly uploaded images
+      const allFinalImages = [...existingImages, ...uploadedUrls];
+      if (allFinalImages.length === 0) {
+        allFinalImages.push(
+          "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80",
+        );
+      }
+
+      const parsedPrice = parseFloat(editForm.price) || 0;
+
+      const payload = {
+        itemName: editForm.itemName.trim(),
+        name: editForm.itemName.trim(),
+        category: editForm.category,
+        price: parsedPrice,
+        location: editForm.location.trim(),
+        description: editForm.description.trim(),
+        images: allFinalImages,
+        image: allFinalImages[0],
+      };
+
+      const serverUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      await fetch(`${serverUrl}/menu/${editingItem.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      // Update local state directly
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === editingItem.id
+            ? {
+                ...i,
+                name: editForm.itemName.trim(),
+                category: editForm.category,
+                price: parsedPrice,
+                location: editForm.location.trim(),
+                description: editForm.description.trim(),
+                images: allFinalImages,
+                image: allFinalImages[0],
+              }
+            : i,
+        ),
+      );
+
+      toast.success(
+        `"${editForm.itemName}" has been updated successfully!`,
+        "Recipe Updated",
+      );
+      setEditingItem(null);
+    } catch (err) {
+      console.error("Save edit error:", err);
+      toast.error("Failed to update menu item.", "Error");
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  // 7. Delete Item
   const confirmDelete = async () => {
     if (!itemToDelete) return;
     setIsDeleting(true);
@@ -124,13 +307,14 @@ export default function MyMenuItemsPage() {
       "Item Deleted",
     );
     setIsDeleting(false);
-    setItemToDelete(null); // Close the confirmation box
+    setItemToDelete(null);
   };
 
+  // 8. Toggle Availability (Activate / Deactivate)
   const handleToggleAvailability = async (id: string) => {
     const current = items.find((i) => i.id === id);
     if (!current) return;
-    // Only approved or inactive items can be toggled
+
     if (current.status === "pending") {
       toast.warning(
         "This item is awaiting admin approval before it can be activated.",
@@ -146,6 +330,7 @@ export default function MyMenuItemsPage() {
       );
       return;
     }
+
     const nextStatus = current.status === "inactive" ? "approved" : "inactive";
 
     try {
@@ -192,8 +377,8 @@ export default function MyMenuItemsPage() {
             My Menu Items
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-            Manage your published pizzas, update active availability, or add new
-            artisan recipes.
+            Manage your published pizzas, edit recipe details, update
+            availability, or add new items.
           </p>
         </div>
 
@@ -230,7 +415,6 @@ export default function MyMenuItemsPage() {
             </p>
           </div>
         ) : items.length === 0 ? (
-          /* Empty State - Clean, No Fake Demo Data */
           <div className="py-16 px-6 text-center flex flex-col items-center justify-center">
             <div className="w-16 h-16 rounded-3xl bg-red-500/10 text-red-600 flex items-center justify-center mb-4">
               <PizzaIcon size={32} />
@@ -252,7 +436,7 @@ export default function MyMenuItemsPage() {
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-stone-100 dark:border-stone-800">
+          <div className="divide-y divide-stone-100 dark:divide-stone-800">
             {items.map((item) => (
               <div
                 key={item.id}
@@ -283,7 +467,8 @@ export default function MyMenuItemsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  {/* Status Badge */}
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${getStatusBadge(
                       item.status,
@@ -292,14 +477,25 @@ export default function MyMenuItemsPage() {
                     {item.status}
                   </span>
 
+                  {/* Activate / Deactivate Button */}
                   <button
                     type="button"
                     onClick={() => handleToggleAvailability(item.id)}
-                    className={`${item.status === "pending" ? "cursor-not-allowed" : "cursor-pointer"} px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors`}
+                    className={`${item.status === "pending" ? "cursor-not-allowed opacity-60" : "cursor-pointer"} px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors`}
                   >
                     {item.status === "inactive" ? "Activate" : "Deactivate"}
                   </button>
 
+                  {/* EDIT BUTTON (Requested) */}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEditModal(item)}
+                    className="px-3.5 py-1.5 rounded-xl border border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Edit
+                  </button>
+
+                  {/* Delete Button */}
                   <button
                     type="button"
                     onClick={() =>
@@ -339,6 +535,240 @@ export default function MyMenuItemsPage() {
           >
             View Plans
           </Link>
+        </div>
+      )}
+
+      {/* Edit Menu Item Modal */}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto no-scrollbar">
+          <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-6 sm:p-7 shadow-2xl space-y-5 my-8 max-h-[92vh] overflow-y-auto no-scrollbar">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                  <PizzaIcon size={18} />
+                </div>
+                <div>
+                  <h3 className="font-heading text-base font-bold text-stone-900 dark:text-white">
+                    Edit Pizza Recipe
+                  </h3>
+                  <p className="text-[11px] text-stone-500">
+                    Update recipe details, pricing, and ingredients.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setEditingItem(null)}
+                className="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-500 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <CloseIcon size={16} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              {/* Item Name */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                  Item Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editForm.itemName}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, itemName: e.target.value })
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500"
+                />
+              </div>
+
+              {/* Category & Price */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                    Category *
+                  </label>
+                  <select
+                    value={editForm.category}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, category: e.target.value })
+                    }
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                    Price ($ USD) *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    required
+                    value={editForm.price}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, price: e.target.value })
+                    }
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                  Kitchen Location *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editForm.location}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, location: e.target.value })
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500"
+                />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                  Description
+                </label>
+                <textarea
+                  rows={2}
+                  value={editForm.description}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, description: e.target.value })
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500"
+                />
+              </div>
+
+              {/* Multiple Pizza Photos Support */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                    Pizza Photos ({existingImages.length + newImagePreviews.length})
+                  </label>
+                  <span className="text-[11px] text-stone-400">
+                    First photo is Cover
+                  </span>
+                </div>
+
+                {/* Hidden File Input for Multiple Selection */}
+                <input
+                  id="editMultipleImagesInput"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleAddEditFiles}
+                  className="hidden"
+                />
+
+                {/* Photos Grid */}
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700">
+                  {/* 1. Existing Photos */}
+                  {existingImages.map((imgUrl, idx) => (
+                    <div
+                      key={`existing-${idx}`}
+                      className="relative aspect-square rounded-xl overflow-hidden bg-stone-200 dark:bg-stone-700 border border-stone-300 dark:border-stone-600 group shadow-xs"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={imgUrl}
+                        alt={`Photo ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {idx === 0 && (
+                        <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-600 text-white shadow-xs">
+                          Cover
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveExistingImage(idx)}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-red-600 text-white flex items-center justify-center transition-colors cursor-pointer"
+                        title="Remove photo"
+                      >
+                        <CloseIcon size={10} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* 2. Newly Picked Photos from Computer */}
+                  {newImagePreviews.map((previewUrl, idx) => (
+                    <div
+                      key={`new-${idx}`}
+                      className="relative aspect-square rounded-xl overflow-hidden bg-stone-200 dark:bg-stone-700 border-2 border-amber-500 group shadow-xs"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={previewUrl}
+                        alt={`New ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500 text-stone-950 shadow-xs">
+                        New
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveNewImage(idx)}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-red-600 text-white flex items-center justify-center transition-colors cursor-pointer"
+                        title="Remove photo"
+                      >
+                        <CloseIcon size={10} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* 3. Add More Photos Button */}
+                  <label
+                    htmlFor="editMultipleImagesInput"
+                    className="aspect-square rounded-xl border-2 border-dashed border-stone-300 dark:border-stone-600 hover:border-amber-500 flex flex-col items-center justify-center gap-1 text-stone-400 hover:text-amber-500 transition-colors cursor-pointer bg-white dark:bg-stone-900/50"
+                  >
+                    <PlusCircleIcon size={20} />
+                    <span className="text-[10px] font-bold">Add Photo</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-100 dark:border-stone-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingItem(null)}
+                  className="px-4 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 text-xs font-bold hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingEdit}
+                  className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {isSavingEdit ? (
+                    <span>Saving...</span>
+                  ) : (
+                    <>
+                      <CheckIcon size={14} />
+                      <span>Save Changes</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
