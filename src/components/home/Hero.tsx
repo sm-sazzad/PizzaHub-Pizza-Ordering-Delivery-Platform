@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   FlameIcon,
   ClockIcon,
@@ -101,7 +102,12 @@ export const Hero: React.FC = () => {
           {/* Left Column: Headline, Narrative & Conversion CTAs */}
           <div className="lg:col-span-7 flex flex-col space-y-7 text-left">
             {/* Value Pill Badge */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-red-500/10 dark:bg-red-500/20 border border-red-500/20 w-fit">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-red-500/10 dark:bg-red-500/20 border border-red-500/20 w-fit"
+            >
               <span className="flex h-2 w-2 rounded-full bg-red-600 animate-ping" />
               <span className="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400">
                 Stone-Baked & Oven-Fresh Delivery
@@ -110,26 +116,41 @@ export const Hero: React.FC = () => {
               <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 flex items-center gap-1">
                 <FlameIcon size={13} className="text-amber-500" /> 485°C Wood Fired
               </span>
-            </div>
+            </motion.div>
 
             {/* Clear, Magnetic Headline (Assignment 9 + UI/UX Pro Max typography) */}
-            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-black text-[#1C1917] dark:text-[#FBF9F5] leading-[1.08] tracking-tight">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.1, ease: "easeOut" }}
+              className="font-heading text-4xl sm:text-5xl lg:text-6xl font-black text-[#1C1917] dark:text-[#FBF9F5] leading-[1.08] tracking-tight"
+            >
               Hot & Fresh Pizza{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-amber-600 to-orange-500">
                 Delivered Direct
               </span>{" "}
               to Your Door.
-            </h1>
+            </motion.h1>
 
             {/* Concise, appetizing description */}
-            <p className="text-base sm:text-lg text-stone-600 dark:text-stone-300 max-w-xl leading-relaxed font-normal">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.2, ease: "easeOut" }}
+              className="text-base sm:text-lg text-stone-600 dark:text-stone-300 max-w-xl leading-relaxed font-normal"
+            >
               Discover verified local artisan pizzerias, browse mouthwatering stone-baked menus,
               and indulge in handcrafted pies with real buffalo mozzarella and 48-hour fermented
               dough.
-            </p>
+            </motion.p>
 
             {/* Primary Action Group */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.3, ease: "easeOut" }}
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2"
+            >
               <Link
                 href="/menu"
                 className="group inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-base shadow-xl shadow-red-600/25 hover:shadow-2xl hover:shadow-red-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
@@ -149,10 +170,15 @@ export const Hero: React.FC = () => {
                 <PizzaIcon size={18} className="text-amber-500" />
                 <span>Restaurant Partner Portal</span>
               </Link>
-            </div>
+            </motion.div>
 
             {/* Trust Metrics Bar */}
-            <div className="pt-6 grid grid-cols-3 gap-3 sm:gap-6 border-t border-stone-200/80 dark:border-stone-800/80 max-w-xl">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.4, ease: "easeOut" }}
+              className="pt-6 grid grid-cols-3 gap-3 sm:gap-6 border-t border-stone-200/80 dark:border-stone-800/80 max-w-xl"
+            >
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5 text-red-600 font-black text-lg sm:text-2xl font-heading whitespace-nowrap">
                   <ClockIcon size={18} className="shrink-0" />
@@ -184,11 +210,16 @@ export const Hero: React.FC = () => {
                   Verified Vendors
                 </span>
               </div>
-            </div>
+            </motion.div>
           </div>
 
           {/* Right Column: SIGNATURE HERO TOY (Interactive Woodfired Oven Showcase) */}
-          <div className="lg:col-span-5 relative">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.65, delay: 0.2, ease: "easeOut" }}
+            className="lg:col-span-5 relative"
+          >
             <div className="relative mx-auto max-w-md lg:max-w-none">
               {/* Outer Glow Halo */}
               <div className="absolute -inset-1.5 bg-gradient-to-r from-red-600 via-amber-500 to-orange-500 rounded-3xl blur-xl opacity-30 animate-pulse" />
@@ -319,7 +350,7 @@ export const Hero: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

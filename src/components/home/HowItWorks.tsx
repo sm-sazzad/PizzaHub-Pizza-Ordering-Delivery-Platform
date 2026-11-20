@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   SearchIcon,
   FlameIcon,
@@ -50,7 +51,13 @@ export const HowItWorks: React.FC = () => {
     <section className="py-16 md:py-24 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          className="text-center max-w-2xl mx-auto mb-16"
+        >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold uppercase tracking-wider mb-4">
             <PizzaIcon size={14} />
             <span>Simple 4-Step Journey</span>
@@ -62,16 +69,21 @@ export const HowItWorks: React.FC = () => {
             From flour and flame to your dining table in record time. Here is how we guarantee the
             freshest pizza experience.
           </p>
-        </div>
+        </motion.div>
 
         {/* Steps Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
           {STEPS.map((item, index) => {
             const Icon = item.icon;
             return (
-              <div
+              <motion.div
                 key={index}
-                className="group relative rounded-3xl p-6 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-xl hover:border-amber-500/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between"
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.45, delay: index * 0.1, ease: "easeOut" }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                className="group relative rounded-3xl p-6 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-xl hover:border-amber-500/40 transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
                   {/* Step Number & Icon */}
@@ -97,7 +109,7 @@ export const HowItWorks: React.FC = () => {
                 <div className="mt-6 pt-3 border-t border-stone-100 dark:border-stone-800 text-[11px] font-semibold text-stone-400">
                   Step {index + 1} of 4
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

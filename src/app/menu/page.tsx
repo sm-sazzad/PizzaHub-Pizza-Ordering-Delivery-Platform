@@ -3,12 +3,14 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   PizzaIcon,
   SearchIcon,
   MapPinIcon,
   ArrowRightIcon,
 } from "@/components/ui/Icons";
+import { PizzaCardSkeleton } from "@/components/ui/Skeleton";
 
 // Define the Menu Item data shape
 interface MenuItem {
@@ -19,6 +21,7 @@ interface MenuItem {
   price: number;
   location: string;
   images?: string[];
+  image?: string;
   vendorName?: string;
 }
 
@@ -94,17 +97,27 @@ function BrowseMenuContent() {
   return (
     <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8 space-y-8">
       {/* Page Title & Subtitle */}
-      <div className="text-center space-y-2">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="text-center space-y-2"
+      >
         <h1 className="font-heading text-3xl sm:text-4xl font-black text-stone-900 dark:text-white">
           Browse Pizza Menu
         </h1>
         <p className="text-sm text-stone-600 dark:text-stone-400">
           Explore delicious handcrafted pizzas from local kitchens.
         </p>
-      </div>
+      </motion.div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white dark:bg-stone-900 p-5 sm:p-6 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm space-y-4">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+        className="bg-white dark:bg-stone-900 p-5 sm:p-6 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-sm space-y-4"
+      >
         {/* Top Row: Search Input & Sort Dropdown */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           {/* Search by Name */}
@@ -158,14 +171,14 @@ function BrowseMenuContent() {
             })}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Loading State */}
       {loading ? (
-        <div className="py-20 text-center">
-          <p className="text-sm text-stone-500 font-semibold">
-            Loading menu items...
-          </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <PizzaCardSkeleton key={i} />
+          ))}
         </div>
       ) : displayedItems.length === 0 ? (
         /* Empty State */
@@ -182,72 +195,88 @@ function BrowseMenuContent() {
         </div>
       ) : (
         /* Pizza Cards Grid */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayedItems.map((item) => {
-            const pizzaId = item._id;
-            const imageUrl =
-              item.images?.[0] ||
-              "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80";
+        <motion.div
+          layout
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <AnimatePresence mode="popLayout">
+            {displayedItems.map((item, index) => {
+              const pizzaId = item._id;
+              const imageUrl =
+                item.images?.[0] ||
+                item.image ||
+                "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80";
 
-            return (
-              <div
-                key={pizzaId}
-                className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <div>
-                  {/* Pizza Image */}
-                  <div className="relative h-48 w-full bg-stone-100 dark:bg-stone-800 overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={imageUrl}
-                      alt={item.itemName}
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute top-3 left-3 bg-black/60 text-white text-[11px] font-bold px-3 py-1 rounded-full backdrop-blur-xs">
-                      {item.category}
-                    </span>
-                  </div>
-
-                  {/* Pizza Info */}
-                  <div className="p-5 space-y-2">
-                    <p className="text-xs text-amber-600 font-semibold flex items-center gap-1">
-                      <MapPinIcon size={12} />
-                      <span>{item.location || "Local Kitchen"}</span>
-                    </p>
-
-                    <h3 className="font-heading text-lg font-bold text-stone-900 dark:text-white line-clamp-1">
-                      {item.itemName}
-                    </h3>
-
-                    <p className="text-xs text-stone-500 line-clamp-2">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Price and Order Button */}
-                <div className="p-5 pt-0 border-t border-stone-100 dark:border-stone-800 mt-4 flex items-center justify-between">
+              return (
+                <motion.div
+                  layout
+                  key={pizzaId}
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{
+                    duration: 0.35,
+                    delay: Math.min(index * 0.04, 0.25),
+                    ease: "easeOut",
+                  }}
+                  whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                  className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm hover:shadow-xl hover:border-red-500/30 transition-shadow duration-300 flex flex-col justify-between"
+                >
                   <div>
-                    <span className="text-[10px] text-stone-400 uppercase font-bold block">
-                      Price
-                    </span>
-                    <span className="text-xl font-black text-stone-900 dark:text-white font-heading">
-                      ${Number(item.price).toFixed(2)}
-                    </span>
+                    {/* Pizza Image */}
+                    <div className="relative h-48 w-full bg-stone-100 dark:bg-stone-800 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={imageUrl}
+                        alt={item.itemName}
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
+                      <span className="absolute top-3 left-3 bg-black/60 text-white text-[11px] font-bold px-3 py-1 rounded-full backdrop-blur-xs">
+                        {item.category}
+                      </span>
+                    </div>
+
+                    {/* Pizza Info */}
+                    <div className="p-5 space-y-2">
+                      <p className="text-xs text-amber-600 font-semibold flex items-center gap-1">
+                        <MapPinIcon size={12} />
+                        <span>{item.location || "Local Kitchen"}</span>
+                      </p>
+
+                      <h3 className="font-heading text-lg font-bold text-stone-900 dark:text-white line-clamp-1">
+                        {item.itemName}
+                      </h3>
+
+                      <p className="text-xs text-stone-500 line-clamp-2">
+                        {item.description}
+                      </p>
+                    </div>
                   </div>
 
-                  <Link
-                    href={`/menu/${pizzaId}`}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors"
-                  >
-                    <span>Order Now</span>
-                    <ArrowRightIcon size={14} />
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                  {/* Price and Order Button */}
+                  <div className="p-5 pt-0 border-t border-stone-100 dark:border-stone-800 mt-4 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-stone-400 uppercase font-bold block">
+                        Price
+                      </span>
+                      <span className="text-xl font-black text-stone-900 dark:text-white font-heading">
+                        ${Number(item.price).toFixed(2)}
+                      </span>
+                    </div>
+
+                    <Link
+                      href={`/menu/${pizzaId}`}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors"
+                    >
+                      <span>Order Now</span>
+                      <ArrowRightIcon size={14} />
+                    </Link>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </motion.div>
       )}
     </div>
   );
@@ -257,11 +286,16 @@ export default function BrowseMenuPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-7xl mx-auto py-20 px-4 text-center">
-          <div className="w-10 h-10 border-4 border-red-500/20 border-t-red-600 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs font-semibold text-stone-500">
-            Loading pizza menu...
-          </p>
+        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8 animate-pulse">
+          <div className="space-y-3">
+            <div className="h-8 w-60 rounded-2xl bg-stone-200 dark:bg-stone-800" />
+            <div className="h-4 w-96 max-w-full rounded-md bg-stone-200 dark:bg-stone-800" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <PizzaCardSkeleton key={i} />
+            ))}
+          </div>
         </div>
       }
     >

@@ -11,6 +11,7 @@ import {
   RefreshIcon,
 } from "@/components/ui/Icons";
 import { getTokenClient } from "@/lib/tokenAccess";
+import { TableRowSkeleton } from "@/components/ui/Skeleton";
 
 // 1. Simple Interface for Transaction Item
 interface TransactionItem {
@@ -51,8 +52,8 @@ export default function AdminTransactionsPage() {
           const data = await res.json();
           setTransactions(Array.isArray(data) ? data : []);
         }
-      } catch {
-        // Backend not yet reachable or empty DB; keep empty state
+      } catch (err) {
+        console.error("Failed to load transactions:", err);
       } finally {
         setIsLoading(false);
       }
@@ -153,11 +154,14 @@ export default function AdminTransactionsPage() {
       {/* Transactions List */}
       <div className="rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs overflow-hidden">
         {isLoading ? (
-          <div className="py-20 text-center">
-            <div className="w-10 h-10 border-4 border-red-500/20 border-t-red-600 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs font-semibold text-stone-500">
-              Loading transactions from ledger...
-            </p>
+          <div className="p-4 overflow-x-auto">
+            <table className="w-full text-left">
+              <tbody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRowSkeleton key={i} columns={4} />
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : filteredTransactions.length === 0 ? (
           <div className="py-16 text-center">

@@ -16,6 +16,7 @@ import {
   MailIcon,
 } from "@/components/ui/Icons";
 import { getTokenClient } from "@/lib/tokenAccess";
+import { OrderCardSkeleton } from "@/components/ui/Skeleton";
 
 // Order interface matching Assignment 9 requirements
 interface Order {
@@ -154,8 +155,8 @@ export default function VendorOrdersPage() {
             ),
           );
         }
-      } catch {
-        // Backend not yet reachable or empty DB; keep empty state
+      } catch (err) {
+        console.error("Failed to load vendor orders:", err);
       } finally {
         setIsLoading(false);
       }
@@ -177,19 +178,27 @@ export default function VendorOrdersPage() {
         },
         body: JSON.stringify({ status: "accepted" }),
       });
-      if (res.ok) {
+
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
+
+      const resData = await res.json();
+      if (resData.modifiedCount > 0) {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === id ? { ...o, status: "accepted" } : o)),
+        );
         toast.success(
           "Order accepted! Sent to kitchen preparation queue.",
           "Order Accepted",
         );
+      } else {
+        toast.error("Failed to accept order in database.", "Action Incomplete");
       }
-    } catch {
-      // Graceful fallback
+    } catch (err) {
+      console.error("Accept order error:", err);
+      toast.error("Failed to accept order. Please try again.", "Action Failed");
     }
-
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status: "accepted" } : o)),
-    );
   };
 
   // 3. Reject Order Handler
@@ -205,16 +214,24 @@ export default function VendorOrdersPage() {
         },
         body: JSON.stringify({ status: "rejected" }),
       });
-      if (res.ok) {
-        toast.error("Order has been rejected.", "Order Rejected");
-      }
-    } catch {
-      // Graceful fallback
-    }
 
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status: "rejected" } : o)),
-    );
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
+
+      const resData = await res.json();
+      if (resData.modifiedCount > 0) {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === id ? { ...o, status: "rejected" } : o)),
+        );
+        toast.error("Order has been rejected.", "Order Rejected");
+      } else {
+        toast.error("Failed to reject order in database.", "Action Incomplete");
+      }
+    } catch (err) {
+      console.error("Reject order error:", err);
+      toast.error("Failed to reject order. Please try again.", "Action Failed");
+    }
   };
 
   // Status Badge Styling Helper
@@ -321,11 +338,10 @@ export default function VendorOrdersPage() {
 
       {/* Orders List Area */}
       {isLoading ? (
-        <div className="py-20 text-center">
-          <div className="w-10 h-10 border-4 border-red-500/20 border-t-red-600 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs font-semibold text-stone-500">
-            Fetching customer orders from database...
-          </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <OrderCardSkeleton key={i} />
+          ))}
         </div>
       ) : filteredOrders.length === 0 ? (
         /* Empty State */

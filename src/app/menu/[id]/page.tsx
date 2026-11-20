@@ -20,6 +20,7 @@ import {
   StoreIcon,
 } from "@/components/ui/Icons";
 import { getTokenClient } from "@/lib/tokenAccess";
+import { PizzaDetailSkeleton } from "@/components/ui/Skeleton";
 
 // Data shape for single pizza item
 interface MenuItem {
@@ -290,6 +291,11 @@ export default function MenuItemDetailsPage({
         setPhone("");
         setAddress("");
         setNotes("");
+      } else {
+        toast.error(
+          resData?.message || "Failed to place order in database.",
+          "Order Incomplete",
+        );
       }
     } catch (error) {
       console.log("Order error:", error);
@@ -318,14 +324,7 @@ export default function MenuItemDetailsPage({
 
   // 2. Loading State
   if (loading || !item) {
-    return (
-      <div className="max-w-5xl mx-auto py-24 px-4 text-center">
-        <div className="w-12 h-12 border-4 border-red-500/20 border-t-red-600 rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-sm font-semibold text-stone-500">
-          Loading delicious pizza details...
-        </p>
-      </div>
-    );
+    return <PizzaDetailSkeleton />;
   }
 
   // Gather multiple images with fallback

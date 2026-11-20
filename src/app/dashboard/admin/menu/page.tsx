@@ -10,6 +10,7 @@ import {
   RefreshIcon,
 } from "@/components/ui/Icons";
 import { getTokenClient } from "@/lib/tokenAccess";
+import { TableRowSkeleton } from "@/components/ui/Skeleton";
 
 // 1. Simple Interface for Menu Item
 interface MenuItem {
@@ -53,8 +54,8 @@ export default function AdminMenuPage() {
           const data = await res.json();
           setItems(Array.isArray(data) ? data : []);
         }
-      } catch {
-        // Backend not yet reachable or empty DB; keep empty state
+      } catch (err) {
+        console.error("Failed to load admin menu items:", err);
       } finally {
         setIsLoading(false);
       }
@@ -72,7 +73,7 @@ export default function AdminMenuPage() {
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${serverUrl}/menu/${id}`, {
+      const res = await fetch(`${serverUrl}/menu/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -80,24 +81,34 @@ export default function AdminMenuPage() {
         },
         body: JSON.stringify({ status: nextStatus }),
       });
-    } catch {
-      // Graceful fallback
-    }
 
-    // Update local state directly using MongoDB _id
-    setItems((prev) =>
-      prev.map((item) =>
-        item._id === id ? { ...item, status: nextStatus } : item,
-      ),
-    );
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
 
-    if (nextStatus === "approved") {
-      toast.success(
-        `"${name}" has been approved and is now live!`,
-        "Item Approved",
-      );
-    } else {
-      toast.error(`"${name}" has been rejected.`, "Item Rejected");
+      const resData = await res.json();
+      if (resData.modifiedCount > 0) {
+        // Update local state directly using MongoDB _id
+        setItems((prev) =>
+          prev.map((item) =>
+            item._id === id ? { ...item, status: nextStatus } : item,
+          ),
+        );
+
+        if (nextStatus === "approved") {
+          toast.success(
+            `"${name}" has been approved and is now live!`,
+            "Item Approved",
+          );
+        } else {
+          toast.error(`"${name}" has been rejected.`, "Item Rejected");
+        }
+      } else {
+        toast.error(`Could not update approval status for "${name}" in database.`, "Action Incomplete");
+      }
+    } catch (err) {
+      console.error("Update item status error:", err);
+      toast.error(`Failed to update status for "${name}". Please try again.`, "Update Failed");
     }
   };
 
@@ -283,11 +294,14 @@ export default function AdminMenuPage() {
       {/* Menu Items Table / List */}
       <div className="rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs overflow-hidden">
         {isLoading ? (
-          <div className="py-20 text-center">
-            <div className="w-10 h-10 border-4 border-purple-500/20 border-t-purple-600 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs font-semibold text-stone-500">
-              Loading menu submissions...
-            </p>
+          <div className="p-4 overflow-x-auto">
+            <table className="w-full text-left">
+              <tbody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRowSkeleton key={i} columns={5} />
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : items.length === 0 ? (
           <div className="py-16 text-center">

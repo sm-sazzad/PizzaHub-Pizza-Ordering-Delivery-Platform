@@ -65,8 +65,8 @@ export default function AddMenuItemPage() {
           const items = Array.isArray(data) ? data : data.items || [];
           setExistingItemsCount(items.length);
         }
-      } catch {
-        // Fallback default is 0 if server is offline
+      } catch (err) {
+        console.error("Failed to fetch existing items count:", err);
       }
     };
 
@@ -253,10 +253,10 @@ export default function AddMenuItemPage() {
         body: JSON.stringify(menuPayload),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
+      const resData = await res.json();
+      if (!res.ok || !resData.insertedId) {
         throw new Error(
-          errorData?.message || `Server responded with status ${res.status}`,
+          resData?.message || `Server responded with status ${res.status}`,
         );
       }
 

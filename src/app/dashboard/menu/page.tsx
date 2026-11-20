@@ -14,6 +14,7 @@ import {
   CheckIcon,
 } from "@/components/ui/Icons";
 import { getTokenClient } from "@/lib/tokenAccess";
+import { PizzaCardSkeleton } from "@/components/ui/Skeleton";
 
 const CATEGORIES = [
   "Classic Pizzas",
@@ -122,8 +123,8 @@ export default function MyMenuItemsPage() {
             ),
           );
         }
-      } catch {
-        // Backend not yet reachable or empty DB; keep empty state
+      } catch (err) {
+        console.error("Failed to load vendor menu items:", err);
       } finally {
         setIsLoading(false);
       }
@@ -250,7 +251,7 @@ export default function MyMenuItemsPage() {
 
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${serverUrl}/menu/${editingItem.id}`, {
+      const res = await fetch(`${serverUrl}/menu/${editingItem.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -259,29 +260,38 @@ export default function MyMenuItemsPage() {
         body: JSON.stringify(payload),
       });
 
-      // Update local state directly
-      setItems((prev) =>
-        prev.map((i) =>
-          i.id === editingItem.id
-            ? {
-                ...i,
-                name: editForm.itemName.trim(),
-                category: editForm.category,
-                price: parsedPrice,
-                location: editForm.location.trim(),
-                description: editForm.description.trim(),
-                images: allFinalImages,
-                image: allFinalImages[0],
-              }
-            : i,
-        ),
-      );
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
 
-      toast.success(
-        `"${editForm.itemName}" has been updated successfully!`,
-        "Recipe Updated",
-      );
-      setEditingItem(null);
+      const resData = await res.json();
+      if (resData.modifiedCount > 0 || resData.matchedCount > 0) {
+        // Update local state directly
+        setItems((prev) =>
+          prev.map((i) =>
+            i.id === editingItem.id
+              ? {
+                  ...i,
+                  name: editForm.itemName.trim(),
+                  category: editForm.category,
+                  price: parsedPrice,
+                  location: editForm.location.trim(),
+                  description: editForm.description.trim(),
+                  images: allFinalImages,
+                  image: allFinalImages[0],
+                }
+              : i,
+          ),
+        );
+
+        toast.success(
+          `"${editForm.itemName}" has been updated successfully!`,
+          "Recipe Updated",
+        );
+        setEditingItem(null);
+      } else {
+        toast.error("No changes were saved in the database.", "Update Incomplete");
+      }
     } catch (err) {
       console.error("Save edit error:", err);
       toast.error("Failed to update menu item.", "Error");
@@ -298,23 +308,34 @@ export default function MyMenuItemsPage() {
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${serverUrl}/menu/${itemToDelete.id}`, {
+      const res = await fetch(`${serverUrl}/menu/${itemToDelete.id}`, {
         method: "DELETE",
         headers: {
           authorization: `Bearer ${await getTokenClient()}`,
         },
       });
+
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
+
+      const resData = await res.json();
+      if (resData.deletedCount > 0) {
+        setItems((prev) => prev.filter((i) => i.id !== itemToDelete.id));
+        toast.success(
+          `"${itemToDelete.name}" was removed from your menu.`,
+          "Item Deleted",
+        );
+        setItemToDelete(null);
+      } else {
+        toast.error("Item was not found or could not be deleted from database.", "Delete Incomplete");
+      }
     } catch (error) {
       console.error("Delete menu item error:", error);
+      toast.error(`Failed to delete "${itemToDelete.name}". Please try again.`, "Delete Failed");
+    } finally {
+      setIsDeleting(false);
     }
-
-    setItems((prev) => prev.filter((i) => i.id !== itemToDelete.id));
-    toast.success(
-      `"${itemToDelete.name}" was removed from your menu.`,
-      "Item Deleted",
-    );
-    setIsDeleting(false);
-    setItemToDelete(null);
   };
 
   // 8. Toggle Availability (Activate / Deactivate)
@@ -343,7 +364,7 @@ export default function MyMenuItemsPage() {
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${serverUrl}/menu/${id}`, {
+      const res = await fetch(`${serverUrl}/menu/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -351,19 +372,29 @@ export default function MyMenuItemsPage() {
         },
         body: JSON.stringify({ status: nextStatus }),
       });
-    } catch {
-      // Graceful fallback
-    }
 
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, status: nextStatus } : i)),
-    );
-    toast.success(
-      nextStatus === "approved"
-        ? `"${current.name}" is now available to order.`
-        : `"${current.name}" has been marked as inactive.`,
-      "Status Updated",
-    );
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
+
+      const resData = await res.json();
+      if (resData.modifiedCount > 0) {
+        setItems((prev) =>
+          prev.map((i) => (i.id === id ? { ...i, status: nextStatus } : i)),
+        );
+        toast.success(
+          nextStatus === "approved"
+            ? `"${current.name}" is now available to order.`
+            : `"${current.name}" has been marked as inactive.`,
+          "Status Updated",
+        );
+      } else {
+        toast.error("Failed to update status in database.", "Update Incomplete");
+      }
+    } catch (err) {
+      console.error("Toggle availability error:", err);
+      toast.error("Failed to update item availability. Please try again.", "Update Failed");
+    }
   };
 
   const activeCount = items.filter((i) => i.status === "approved").length;
@@ -418,11 +449,10 @@ export default function MyMenuItemsPage() {
         </div>
 
         {isLoading ? (
-          <div className="py-20 text-center">
-            <div className="w-10 h-10 border-4 border-red-500/20 border-t-red-600 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs font-semibold text-stone-500">
-              Fetching menu items from database...
-            </p>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <PizzaCardSkeleton key={i} />
+            ))}
           </div>
         ) : items.length === 0 ? (
           <div className="py-16 px-6 text-center flex flex-col items-center justify-center">

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { motion } from "framer-motion";
 import {
   FlameIcon,
   ChefHatIcon,
@@ -63,7 +64,13 @@ export const WhyChooseUs: React.FC = () => {
     <section className="py-16 md:py-24 relative overflow-hidden bg-stone-100/60 dark:bg-stone-900/40 border-y border-stone-200/80 dark:border-stone-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 text-xs font-bold uppercase tracking-wider mb-4">
             <FlameIcon size={14} />
             <span>The PizzaHub Distinction</span>
@@ -75,16 +82,21 @@ export const WhyChooseUs: React.FC = () => {
             We don’t do average fast-food slices. We connect discerning pizza enthusiasts with
             independent master bakers who take their sourdough, mozzarella, and ovens seriously.
           </p>
-        </div>
+        </motion.div>
 
         {/* Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           {BENEFITS.map((benefit, index) => {
             const Icon = benefit.icon;
             return (
-              <div
+              <motion.div
                 key={index}
-                className="group relative rounded-3xl p-7 sm:p-8 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-xl hover:border-amber-500/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
+                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                className="group relative rounded-3xl p-7 sm:p-8 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-xl hover:border-amber-500/40 transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
@@ -120,7 +132,7 @@ export const WhyChooseUs: React.FC = () => {
                     <span>Pure natural ingredients</span>
                   </span>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

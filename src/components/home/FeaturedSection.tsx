@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   FlameIcon,
   MapPinIcon,
@@ -52,7 +53,13 @@ export function FeaturedSection() {
     <section className="py-16 sm:py-24 bg-stone-50/50 dark:bg-stone-900/30 border-y border-stone-200/60 dark:border-stone-800/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6"
+        >
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-wider border border-red-500/20">
               <FlameIcon size={14} className="text-red-500" />
@@ -77,7 +84,7 @@ export function FeaturedSection() {
               className="group-hover:translate-x-1 transition-transform"
             />
           </Link>
-        </div>
+        </motion.div>
 
         {/* Loading Skeletons */}
         {loading ? (
@@ -119,9 +126,14 @@ export function FeaturedSection() {
                 "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80";
 
               return (
-                <div
+                <motion.div
                   key={item._id || `featured-${index}`}
-                  className="group rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 overflow-hidden shadow-xs hover:shadow-xl hover:border-red-500/30 transition-all duration-300 flex flex-col justify-between"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
+                  whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                  className="group rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 overflow-hidden shadow-xs hover:shadow-xl hover:border-red-500/30 transition-shadow duration-300 flex flex-col justify-between"
                 >
                   <div>
                     {/* Image Container */}
@@ -176,7 +188,7 @@ export function FeaturedSection() {
                       <span>Order</span>
                     </Link>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>

@@ -17,6 +17,7 @@ import {
   EyeIcon,
 } from "@/components/ui/Icons";
 import { getTokenClient } from "@/lib/tokenAccess";
+import { OrderCardSkeleton } from "@/components/ui/Skeleton";
 
 export interface CustomerOrder {
   id: string;
@@ -110,8 +111,8 @@ export default function CustomerOrdersPage() {
             }),
           );
         }
-      } catch {
-        // Backend not yet reachable or no records yet; keep empty state
+      } catch (err) {
+        console.error("Failed to load customer orders:", err);
       } finally {
         setIsLoading(false);
       }
@@ -128,7 +129,7 @@ export default function CustomerOrdersPage() {
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${serverUrl}/orders/${orderToCancel.id}/cancel`, {
+      const res = await fetch(`${serverUrl}/orders/${orderToCancel.id}/cancel`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -136,22 +137,33 @@ export default function CustomerOrdersPage() {
         },
         body: JSON.stringify({ email: user?.email }),
       });
+
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
+
+      const resData = await res.json();
+      if (resData.modifiedCount > 0) {
+        // Update order status to cancelled in local state
+        setOrders((prev) =>
+          prev.map((o) =>
+            o.id === orderToCancel.id ? { ...o, status: "cancelled" } : o,
+          ),
+        );
+        toast.success(
+          `Order for "${orderToCancel.itemName}" was cancelled.`,
+          "Order Cancelled",
+        );
+        setOrderToCancel(null);
+      } else {
+        toast.error("Order could not be cancelled in database.", "Cancel Incomplete");
+      }
     } catch (error) {
       console.error("Cancel order error:", error);
+      toast.error(`Failed to cancel order for "${orderToCancel.itemName}".`, "Action Failed");
+    } finally {
+      setIsCancelling(false);
     }
-
-    // Update order status to cancelled in local state
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === orderToCancel.id ? { ...o, status: "cancelled" } : o,
-      ),
-    );
-    toast.success(
-      `Order for "${orderToCancel.itemName}" was cancelled.`,
-      "Order Cancelled",
-    );
-    setIsCancelling(false);
-    setOrderToCancel(null);
   };
 
   // Get status badge styling and icon (supports both "cancelled" and "cancled")
@@ -237,11 +249,10 @@ export default function CustomerOrdersPage() {
 
       {/* Orders List / Table */}
       {isLoading ? (
-        <div className="py-20 text-center">
-          <div className="w-10 h-10 border-4 border-red-500/20 border-t-red-600 rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs font-semibold text-stone-500">
-            Fetching your orders from database...
-          </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <OrderCardSkeleton key={i} />
+          ))}
         </div>
       ) : orders.length === 0 ? (
         /* Empty State */

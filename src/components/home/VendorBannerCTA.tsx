@@ -2,13 +2,20 @@
 
 import React from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { PizzaIcon, ArrowRightIcon, SparklesIcon, CheckIcon } from "@/components/ui/Icons";
 
 export const VendorBannerCTA: React.FC = () => {
   return (
     <section className="py-16 md:py-20 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-stone-900 via-stone-950 to-neutral-900 text-white p-8 sm:p-12 lg:p-16 border border-stone-800 shadow-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-stone-900 via-stone-950 to-neutral-900 text-white p-8 sm:p-12 lg:p-16 border border-stone-800 shadow-2xl"
+        >
           {/* Decorative ambient glowing circles */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
@@ -122,7 +129,7 @@ export const VendorBannerCTA: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

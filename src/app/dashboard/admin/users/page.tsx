@@ -9,6 +9,7 @@ import {
   CloseIcon,
 } from "@/components/ui/Icons";
 import { getTokenClient } from "@/lib/tokenAccess";
+import { TableRowSkeleton } from "@/components/ui/Skeleton";
 
 interface UserItem {
   _id: string;
@@ -51,8 +52,8 @@ export default function AdminUsersPage() {
           const data = await res.json();
           setUsers(Array.isArray(data) ? data : []);
         }
-      } catch {
-        // Backend not yet reachable or empty DB; keep empty state
+      } catch (err) {
+        console.error("Failed to load users:", err);
       } finally {
         setIsLoading(false);
       }
@@ -66,7 +67,7 @@ export default function AdminUsersPage() {
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${serverUrl}/admin/users/${id}/block`, {
+      const res = await fetch(`${serverUrl}/admin/users/${id}/block`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -74,17 +75,27 @@ export default function AdminUsersPage() {
         },
         body: JSON.stringify({ isBlocked: nextState }),
       });
-    } catch {
-      // Graceful fallback
-    }
 
-    setUsers((prev) =>
-      prev.map((u) => (u._id === id ? { ...u, isBlocked: nextState } : u)),
-    );
-    if (nextState) {
-      toast.warning(`Account for ${name} has been blocked.`, "User Blocked");
-    } else {
-      toast.success(`Account for ${name} has been unblocked.`, "User Unblocked");
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
+
+      const resData = await res.json();
+      if (resData.modifiedCount > 0) {
+        setUsers((prev) =>
+          prev.map((u) => (u._id === id ? { ...u, isBlocked: nextState } : u)),
+        );
+        if (nextState) {
+          toast.warning(`Account for ${name} has been blocked.`, "User Blocked");
+        } else {
+          toast.success(`Account for ${name} has been unblocked.`, "User Unblocked");
+        }
+      } else {
+        toast.error(`No changes were saved in database for ${name}.`, "Action Incomplete");
+      }
+    } catch (err) {
+      console.error("Toggle block error:", err);
+      toast.error(`Failed to update account status for ${name}.`, "Action Failed");
     }
   };
 
@@ -95,7 +106,7 @@ export default function AdminUsersPage() {
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      await fetch(`${serverUrl}/admin/users/${roleModalUser._id}/role`, {
+      const res = await fetch(`${serverUrl}/admin/users/${roleModalUser._id}/role`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -103,21 +114,32 @@ export default function AdminUsersPage() {
         },
         body: JSON.stringify({ role: newRole }),
       });
-    } catch {
-      // Graceful fallback
-    }
 
-    setUsers((prev) =>
-      prev.map((u) =>
-        u._id === roleModalUser._id ? { ...u, role: newRole } : u,
-      ),
-    );
-    toast.success(
-      `Role for ${roleModalUser.name} changed to ${newRole.toUpperCase()}!`,
-      "Role Updated",
-    );
-    setIsUpdatingRole(false);
-    setRoleModalUser(null);
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
+
+      const resData = await res.json();
+      if (resData.modifiedCount > 0) {
+        setUsers((prev) =>
+          prev.map((u) =>
+            u._id === roleModalUser._id ? { ...u, role: newRole } : u,
+          ),
+        );
+        toast.success(
+          `Role for ${roleModalUser.name} changed to ${newRole.toUpperCase()}!`,
+          "Role Updated",
+        );
+        setRoleModalUser(null);
+      } else {
+        toast.error(`No changes were saved in database for ${roleModalUser.name}.`, "Update Incomplete");
+      }
+    } catch (err) {
+      console.error("Save role error:", err);
+      toast.error(`Failed to update role for ${roleModalUser.name}.`, "Update Failed");
+    } finally {
+      setIsUpdatingRole(false);
+    }
   };
 
   const filteredUsers = users.filter((u) => {
@@ -182,11 +204,14 @@ export default function AdminUsersPage() {
       {/* Table / List */}
       <div className="rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 shadow-xs overflow-hidden">
         {isLoading ? (
-          <div className="py-20 text-center">
-            <div className="w-10 h-10 border-4 border-purple-500/20 border-t-purple-600 rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs font-semibold text-stone-500">
-              Loading users from database...
-            </p>
+          <div className="p-4 overflow-x-auto">
+            <table className="w-full text-left">
+              <tbody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRowSkeleton key={i} columns={4} />
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="py-16 text-center">
