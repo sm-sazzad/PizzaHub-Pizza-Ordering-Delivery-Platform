@@ -15,6 +15,7 @@ import {
   StoreIcon,
   PlusCircleIcon,
 } from "@/components/ui/Icons";
+import { getTokenClient } from "@/lib/tokenAccess";
 
 const CATEGORIES = [
   "Classic Pizzas",
@@ -247,6 +248,7 @@ export default function AddMenuItemPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          authorization: `Bearer ${await getTokenClient()}`,
         },
         body: JSON.stringify(menuPayload),
       });

@@ -19,6 +19,7 @@ import {
   TrendingUpIcon,
   DollarSignIcon,
 } from "@/components/ui/Icons";
+import { getTokenClient } from "@/lib/tokenAccess";
 
 function CustomerOverview({
   user,
@@ -55,6 +56,11 @@ function CustomerOverview({
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(
           `${serverUrl}/orders?email=${encodeURIComponent(user.email)}`,
+          {
+            headers: {
+              authorization: `Bearer ${await getTokenClient()}`,
+            },
+          },
         );
         if (res.ok) {
           const data = await res.json();
@@ -491,11 +497,16 @@ function VendorOverview({
       try {
         const serverUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const token = await getTokenClient();
         const [menuRes, ordersRes] = await Promise.all([
           fetch(
             `${serverUrl}/menu?vendorEmail=${encodeURIComponent(user.email)}`,
           ),
-          fetch(`${serverUrl}/orders?email=${encodeURIComponent(user.email)}`),
+          fetch(`${serverUrl}/orders?email=${encodeURIComponent(user.email)}`, {
+            headers: {
+              authorization: `Bearer ${token}`,
+            },
+          }),
         ]);
 
         let totalItems = 0;
@@ -985,14 +996,22 @@ function AdminOverview({
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
         // 1. Fetch all users
-        const usersRes = await fetch(`${serverUrl}/admin/users`);
+        const usersRes = await fetch(`${serverUrl}/admin/users`, {
+          headers: {
+            authorization: `Bearer ${await getTokenClient()}`,
+          },
+        });
         if (usersRes.ok) {
           const usersData = await usersRes.json();
           setUsers(Array.isArray(usersData) ? usersData : []);
         }
 
         // 2. Fetch all menu items
-        const menuRes = await fetch(`${serverUrl}/admin/menu`);
+        const menuRes = await fetch(`${serverUrl}/admin/menu`, {
+          headers: {
+            authorization: `Bearer ${await getTokenClient()}`,
+          },
+        });
         if (menuRes.ok) {
           const menuData = await menuRes.json();
           setMenuItems(Array.isArray(menuData) ? menuData : []);

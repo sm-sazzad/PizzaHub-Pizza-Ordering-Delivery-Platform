@@ -16,6 +16,7 @@ import {
   CloseIcon,
   EyeIcon,
 } from "@/components/ui/Icons";
+import { getTokenClient } from "@/lib/tokenAccess";
 
 export interface CustomerOrder {
   id: string;
@@ -64,6 +65,11 @@ export default function CustomerOrdersPage() {
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(
           `${serverUrl}/orders?email=${encodeURIComponent(user.email)}`,
+          {
+            headers: {
+              authorization: `Bearer ${await getTokenClient()}`,
+            },
+          },
         );
         if (res.ok) {
           const data = await res.json();
@@ -124,7 +130,10 @@ export default function CustomerOrdersPage() {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/orders/${orderToCancel.id}/cancel`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${await getTokenClient()}`,
+        },
         body: JSON.stringify({ email: user?.email }),
       });
     } catch (error) {

@@ -15,6 +15,7 @@ import {
   PhoneIcon,
   MailIcon,
 } from "@/components/ui/Icons";
+import { getTokenClient } from "@/lib/tokenAccess";
 
 // Order interface matching Assignment 9 requirements
 interface Order {
@@ -75,6 +76,11 @@ export default function VendorOrdersPage() {
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
         const res = await fetch(
           `${serverUrl}/orders?email=${encodeURIComponent(user.email)}`,
+          {
+            headers: {
+              authorization: `Bearer ${await getTokenClient()}`,
+            },
+          },
         );
         if (res.ok) {
           const data = await res.json();
@@ -165,7 +171,10 @@ export default function VendorOrdersPage() {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const res = await fetch(`${serverUrl}/orders/${id}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${await getTokenClient()}`,
+        },
         body: JSON.stringify({ status: "accepted" }),
       });
       if (res.ok) {
@@ -190,7 +199,10 @@ export default function VendorOrdersPage() {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const res = await fetch(`${serverUrl}/orders/${id}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${await getTokenClient()}`,
+        },
         body: JSON.stringify({ status: "rejected" }),
       });
       if (res.ok) {

@@ -19,6 +19,7 @@ import {
   CalendarIcon,
   StoreIcon,
 } from "@/components/ui/Icons";
+import { getTokenClient } from "@/lib/tokenAccess";
 
 // Data shape for single pizza item
 interface MenuItem {
@@ -259,7 +260,10 @@ export default function MenuItemDetailsPage({
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const res = await fetch(`${apiUrl}/orders`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${await getTokenClient()}`,
+        },
         body: JSON.stringify(orderData),
       });
 

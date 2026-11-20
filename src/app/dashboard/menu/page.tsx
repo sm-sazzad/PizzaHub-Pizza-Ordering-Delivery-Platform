@@ -13,6 +13,7 @@ import {
   CloseIcon,
   CheckIcon,
 } from "@/components/ui/Icons";
+import { getTokenClient } from "@/lib/tokenAccess";
 
 const CATEGORIES = [
   "Classic Pizzas",
@@ -251,7 +252,10 @@ export default function MyMenuItemsPage() {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/menu/${editingItem.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${await getTokenClient()}`,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -296,6 +300,9 @@ export default function MyMenuItemsPage() {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/menu/${itemToDelete.id}`, {
         method: "DELETE",
+        headers: {
+          authorization: `Bearer ${await getTokenClient()}`,
+        },
       });
     } catch (error) {
       console.error("Delete menu item error:", error);
@@ -338,7 +345,10 @@ export default function MyMenuItemsPage() {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       await fetch(`${serverUrl}/menu/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${await getTokenClient()}`,
+        },
         body: JSON.stringify({ status: nextStatus }),
       });
     } catch {
