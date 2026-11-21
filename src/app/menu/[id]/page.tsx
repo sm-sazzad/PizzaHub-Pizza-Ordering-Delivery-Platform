@@ -66,8 +66,9 @@ export default function MenuItemDetailsPage({
   const [isNotFound, setIsNotFound] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  // Favorite State
+  // Favorite State (Synced with MongoDB)
   const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   // Order Popup Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -103,15 +104,26 @@ export default function MenuItemDetailsPage({
 
         setItem(data);
 
-        // Check if item is already in user's saved favorites
-        if (data?._id && typeof window !== "undefined") {
+        // Check if item is already in user's saved favorites in DB
+        if (data?._id && isLoggedIn) {
           try {
-            const saved: string[] = JSON.parse(
-              localStorage.getItem("pizzahub_favorites") || "[]",
-            );
-            setIsFavorite(saved.includes(data._id));
-          } catch {
-            // Storage error fallback
+            const token = await getTokenClient();
+            if (token) {
+              const favRes = await fetch(
+                `${apiUrl}/favorites/check?menuId=${data._id}`,
+                {
+                  headers: {
+                    authorization: `Bearer ${token}`,
+                  },
+                },
+              );
+              if (favRes.ok) {
+                const favData = await favRes.json();
+                setIsFavorite(Boolean(favData.isFavorite));
+              }
+            }
+          } catch (err) {
+            console.error("Failed to check favorite status:", err);
           }
         }
       } catch (error) {
@@ -155,8 +167,8 @@ export default function MenuItemDetailsPage({
     setIsModalOpen(true);
   };
 
-  // Handle toggling favorite status
-  const handleToggleFavorite = () => {
+  // Handle toggling favorite status in MongoDB
+  const handleToggleFavorite = async () => {
     if (!isLoggedIn) {
       toast.warning(
         "Please sign in to save pizzas to your favorites.",
@@ -165,32 +177,65 @@ export default function MenuItemDetailsPage({
       return;
     }
 
-    const nextState = !isFavorite;
-    setIsFavorite(nextState);
+    if (!item?._id || favoriteLoading) return;
+    setFavoriteLoading(true);
 
-    if (item?._id && typeof window !== "undefined") {
-      try {
-        const saved: string[] = JSON.parse(
-          localStorage.getItem("pizzahub_favorites") || "[]",
-        );
-        let updated: string[];
-        if (nextState) {
-          updated = Array.from(new Set([...saved, item._id]));
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+    try {
+      const token = await getTokenClient();
+
+      if (!isFavorite) {
+        // Add to favorites
+        const res = await fetch(`${apiUrl}/favorites`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            menuId: item._id,
+            itemName: item.itemName,
+            image:
+              item.image || (Array.isArray(item.images) ? item.images[0] : ""),
+            price: item.price,
+            category: item.category,
+          }),
+        });
+
+        if (res.ok) {
+          setIsFavorite(true);
           toast.success(
             `"${item.itemName}" added to your favorites!`,
             "Saved to Favorites",
           );
         } else {
-          updated = saved.filter((favId) => favId !== item._id);
+          toast.error("Failed to add to favorites.", "Error");
+        }
+      } else {
+        // Remove from favorites
+        const res = await fetch(`${apiUrl}/favorites?menuId=${item._id}`, {
+          method: "DELETE",
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.ok) {
+          setIsFavorite(false);
           toast.info(
             `"${item.itemName}" removed from your favorites.`,
             "Removed from Favorites",
           );
+        } else {
+          toast.error("Failed to remove from favorites.", "Error");
         }
-        localStorage.setItem("pizzahub_favorites", JSON.stringify(updated));
-      } catch {
-        // Fallback
       }
+    } catch (err) {
+      console.error("Favorite toggle error:", err);
+      toast.error("Network error while updating favorite.", "Error");
+    } finally {
+      setFavoriteLoading(false);
     }
   };
 
@@ -502,9 +547,10 @@ export default function MenuItemDetailsPage({
             {/* Favorite / Heart Button */}
             <button
               type="button"
+              disabled={favoriteLoading}
               onClick={handleToggleFavorite}
               title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
+              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-center shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
                 isFavorite
                   ? "bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-900/50 text-red-600 scale-105 shadow-md shadow-red-500/10"
                   : "bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-400 hover:text-red-500 hover:border-red-300 dark:hover:border-red-800 hover:bg-red-50/50 dark:hover:bg-red-950/20"
