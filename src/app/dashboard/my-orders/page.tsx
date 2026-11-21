@@ -347,8 +347,8 @@ export default function CustomerOrdersPage() {
                   )}
                 </div>
 
-                <div className="flex sm:items-center justify-between lg:justify-end gap-4 pt-3 lg:pt-0 border-t lg:border-t-0 border-stone-100 dark:border-stone-800 shrink-0">
-                  <div className="text-left lg:text-right">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between lg:justify-end gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-stone-100 dark:border-stone-800">
+                  <div className="flex items-center justify-between sm:block text-left lg:text-right">
                     <span className="text-[10px] uppercase font-bold text-stone-400 block">
                       Total Paid
                     </span>
@@ -358,7 +358,7 @@ export default function CustomerOrdersPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
                     {/* View Item Details Button */}
                     <Link
                       href={
@@ -366,7 +366,7 @@ export default function CustomerOrdersPage() {
                           ? `/menu/${order.menuItemId}`
                           : "/menu"
                       }
-                      className="px-3.5 py-2 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                      className="flex-1 sm:flex-initial justify-center px-3.5 py-2 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                       title="View Pizza Details"
                     >
                       <EyeIcon size={14} />
@@ -382,14 +382,14 @@ export default function CustomerOrdersPage() {
                             itemName: order.itemName,
                           })
                         }
-                        className="px-4 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-600 text-rose-600 hover:text-white text-xs font-bold transition-colors cursor-pointer"
+                        className="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-600 text-rose-600 hover:text-white text-xs font-bold transition-colors cursor-pointer"
                       >
                         Cancel Order
                       </button>
                     ) : (
                       <button
                         disabled
-                        className="px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-400 text-xs font-semibold cursor-not-allowed"
+                        className="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-400 text-xs font-semibold cursor-not-allowed capitalize"
                       >
                         {order.status === "cancelled" ||
                         order.status === "cancled"

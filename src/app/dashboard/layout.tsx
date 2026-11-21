@@ -155,7 +155,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-[#FDFBF7] dark:bg-[#100E0D] text-[#1C1917] dark:text-[#F5F3F0]">
       {/* Mobile Top Header for Dashboard */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 sticky top-0 z-40">
+      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 sticky top-20 z-30 shadow-xs">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center text-white shadow-xs">
             <RoleIcon size={16} />

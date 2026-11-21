@@ -176,36 +176,36 @@ export const Hero: React.FC = () => {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.4, ease: "easeOut" }}
-              className="pt-6 grid grid-cols-3 gap-3 sm:gap-6 border-t border-stone-200/80 dark:border-stone-800/80 max-w-xl"
+              className="pt-6 grid grid-cols-3 gap-2 sm:gap-6 border-t border-stone-200/80 dark:border-stone-800/80 max-w-xl"
             >
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5 text-red-600 font-black text-lg sm:text-2xl font-heading whitespace-nowrap">
-                  <ClockIcon size={18} className="shrink-0" />
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1 sm:gap-1.5 text-red-600 font-black text-sm sm:text-2xl font-heading">
+                  <ClockIcon size={16} className="shrink-0" />
                   <span className="shrink-0">25–35</span>
-                  <span className="text-xs sm:text-sm font-semibold text-stone-500">min</span>
+                  <span className="text-[10px] sm:text-sm font-semibold text-stone-500">min</span>
                 </div>
-                <span className="text-xs font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">
+                <span className="text-[10px] sm:text-xs font-medium text-stone-500 dark:text-stone-400 leading-snug mt-0.5">
                   Avg. Delivery Time
                 </span>
               </div>
 
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5 text-amber-500 font-black text-lg sm:text-2xl font-heading whitespace-nowrap">
-                  <StarIcon size={17} className="shrink-0" />
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1 sm:gap-1.5 text-amber-500 font-black text-sm sm:text-2xl font-heading">
+                  <StarIcon size={15} className="shrink-0" />
                   <span className="shrink-0">4.95</span>
-                  <span className="text-xs sm:text-sm font-semibold text-stone-400">/ 5</span>
+                  <span className="text-[10px] sm:text-sm font-semibold text-stone-400">/ 5</span>
                 </div>
-                <span className="text-xs font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">
+                <span className="text-[10px] sm:text-xs font-medium text-stone-500 dark:text-stone-400 leading-snug mt-0.5">
                   12,000+ Reviews
                 </span>
               </div>
 
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5 text-emerald-600 font-black text-lg sm:text-2xl font-heading whitespace-nowrap">
-                  <ShieldCheckIcon size={18} className="shrink-0" />
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1 sm:gap-1.5 text-emerald-600 font-black text-sm sm:text-2xl font-heading">
+                  <ShieldCheckIcon size={16} className="shrink-0" />
                   <span className="shrink-0">100%</span>
                 </div>
-                <span className="text-xs font-medium text-stone-500 dark:text-stone-400 whitespace-nowrap">
+                <span className="text-[10px] sm:text-xs font-medium text-stone-500 dark:text-stone-400 leading-snug mt-0.5">
                   Verified Vendors
                 </span>
               </div>

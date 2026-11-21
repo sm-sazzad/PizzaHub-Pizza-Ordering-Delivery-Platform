@@ -121,8 +121,8 @@ export const Navbar: React.FC = () => {
 
           {/* Right Action Bar */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Theme Toggle Button */}
-            <ThemeToggle />
+            {/* Theme Toggle Button: Hidden on mobile navbar, accessible in mobile drawer */}
+            <ThemeToggle className="hidden md:flex" />
 
             {/* Auth State Conditional UI */}
             {isLoggedIn && user ? (
@@ -130,15 +130,16 @@ export const Navbar: React.FC = () => {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors focus:outline-none border border-transparent hover:border-stone-200 dark:hover:border-stone-700 cursor-pointer"
+                  className="flex items-center gap-2.5 p-1 sm:p-1.5 sm:pr-3 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors focus:outline-none border border-transparent hover:border-stone-200 dark:hover:border-stone-700 cursor-pointer"
                   aria-expanded={dropdownOpen}
                 >
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-900 border border-stone-700/60 shadow-sm shrink-0">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-stone-900 border border-stone-700/60 shadow-sm shrink-0">
                     {user.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={user.image}
                         alt={user.name}
+                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -161,7 +162,7 @@ export const Navbar: React.FC = () => {
                   </div>
                   <ChevronDownIcon
                     size={16}
-                    className={`text-stone-500 transition-transform duration-200 ${
+                    className={`hidden sm:block text-stone-500 transition-transform duration-200 ${
                       dropdownOpen ? "rotate-180" : ""
                     }`}
                   />

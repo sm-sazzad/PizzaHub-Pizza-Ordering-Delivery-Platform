@@ -529,11 +529,11 @@ export default function VendorOrdersPage() {
 
                   {/* Accept / Reject Buttons for Pending Orders */}
                   {isPending ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                       <button
                         type="button"
                         onClick={() => handleReject(order.id)}
-                        className="px-4 py-2 rounded-xl border border-rose-200 dark:border-rose-900/40 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors flex items-center gap-1.5 cursor-pointer"
+                        className="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl border border-rose-200 dark:border-rose-900/40 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors flex items-center gap-1.5 cursor-pointer"
                       >
                         <CloseIcon size={14} />
                         <span>Reject Order</span>
@@ -542,7 +542,7 @@ export default function VendorOrdersPage() {
                       <button
                         type="button"
                         onClick={() => handleAccept(order.id)}
-                        className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                        className="flex-1 sm:flex-initial justify-center px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
                       >
                         <CheckIcon size={14} />
                         <span>Accept Order</span>

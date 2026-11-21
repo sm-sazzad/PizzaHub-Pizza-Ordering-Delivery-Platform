@@ -447,7 +447,7 @@ export default function AdminMenuPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end sm:justify-start">
                     {item.status === "pending" ? (
                       <>
                         <button

@@ -231,20 +231,21 @@ export default function ProfilePage() {
       </div>
 
       {/* Hero Profile Overview Card */}
-      <div className="rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="flex items-center gap-5">
+      <div className="rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 p-4 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6">
+        <div className="flex items-center gap-4 sm:gap-5 min-w-0 flex-1">
           {/* Avatar */}
           <div className="relative shrink-0">
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-stone-900 border border-stone-700/60 shadow-md">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-stone-900 border border-stone-700/60 shadow-md">
               {avatarPreview ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={avatarPreview}
                   alt={user.name}
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-500 to-amber-500 text-white font-bold text-2xl">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-500 to-amber-500 text-white font-bold text-xl sm:text-2xl">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -252,14 +253,14 @@ export default function ProfilePage() {
           </div>
 
           {/* User Details */}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-heading text-xl sm:text-2xl font-bold text-stone-900 dark:text-white truncate">
+              <h2 className="font-heading text-lg sm:text-2xl font-bold text-stone-900 dark:text-white break-words sm:truncate">
                 {user.name}
               </h2>
               {/* Role Badge */}
               <span
-                className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border ${
+                className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border shrink-0 ${
                   isAdmin
                     ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
                     : isVendor
@@ -270,21 +271,23 @@ export default function ProfilePage() {
                 {user.role}
               </span>
               {isVendor && isPremium && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-red-500 to-amber-500 text-white shadow-xs">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-red-500 to-amber-500 text-white shadow-xs shrink-0">
                   PRO VENDOR
                 </span>
               )}
             </div>
 
-            <p className="text-xs text-stone-500 mt-1 flex items-center gap-1.5">
+            <p className="text-xs text-stone-500 mt-1 flex items-center gap-1.5 min-w-0">
               <MailIcon size={14} className="text-stone-400 shrink-0" />
-              <span>{user.email}</span>
+              <span className="break-all sm:break-normal truncate max-w-full" title={user.email}>
+                {user.email}
+              </span>
             </p>
 
             {isVendor && (
-              <p className="text-xs text-amber-600 font-semibold mt-1 flex items-center gap-1.5">
+              <p className="text-xs text-amber-600 font-semibold mt-1 flex items-center gap-1.5 min-w-0">
                 <StoreIcon size={14} className="shrink-0" />
-                <span>{user.businessName || "Artisan Kitchen"}</span>
+                <span className="truncate">{user.businessName || "Artisan Kitchen"}</span>
               </p>
             )}
           </div>
@@ -292,7 +295,7 @@ export default function ProfilePage() {
 
         <button
           onClick={() => logout()}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl border border-rose-200 dark:border-rose-900/40 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-bold transition-colors w-fit"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl border border-rose-200 dark:border-rose-900/40 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-bold transition-colors w-full sm:w-auto shrink-0"
         >
           <LogOutIcon size={16} />
           <span>Sign Out</span>

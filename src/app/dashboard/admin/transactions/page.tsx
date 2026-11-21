@@ -198,14 +198,15 @@ export default function AdminTransactionsPage() {
                   className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-stone-50/50 dark:hover:bg-stone-800/40 transition-colors"
                 >
                   {/* Left: User Profile Image & Info */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                     {/* User Image Frame */}
-                    <div className="w-12 h-12 rounded-2xl overflow-hidden bg-stone-900 border border-stone-800 shrink-0 flex items-center justify-center shadow-xs">
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl overflow-hidden bg-stone-900 border border-stone-800 shrink-0 flex items-center justify-center shadow-xs">
                       {tx.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={tx.image}
                           alt={userName}
+                          referrerPolicy="no-referrer"
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -216,30 +217,30 @@ export default function AdminTransactionsPage() {
                     </div>
 
                     {/* Name, Badges, Email, Session ID */}
-                    <div className="space-y-1">
+                    <div className="space-y-1 min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h5 className="font-heading font-bold text-sm sm:text-base text-stone-900 dark:text-white">
+                        <h5 className="font-heading font-bold text-sm sm:text-base text-stone-900 dark:text-white truncate">
                           {userName}
                         </h5>
 
                         {/* Plan Badge */}
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 inline-flex items-center gap-1">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 inline-flex items-center gap-1 shrink-0">
                           <SparklesIcon size={10} />
                           <span>Premium Tier</span>
                         </span>
 
                         {/* Status Badge */}
-                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 inline-flex items-center gap-1">
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 inline-flex items-center gap-1 shrink-0">
                           <CheckIcon size={10} />
                           <span>{tx.status || "Paid"}</span>
                         </span>
                       </div>
 
-                      <p className="text-xs text-stone-500 dark:text-stone-400">
+                      <p className="text-xs text-stone-500 dark:text-stone-400 truncate max-w-full" title={userEmail}>
                         {userEmail}
                       </p>
 
-                      <p className="text-[11px] text-stone-400 dark:text-stone-500 font-mono">
+                      <p className="text-[11px] text-stone-400 dark:text-stone-500 font-mono break-all sm:truncate max-w-full">
                         Ref ID: {sessionId}
                       </p>
                     </div>

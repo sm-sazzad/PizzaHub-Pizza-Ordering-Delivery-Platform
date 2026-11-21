@@ -281,13 +281,14 @@ export default function AdminUsersPage() {
                 key={u._id}
                 className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   {u.image ? (
                     <div className="w-10 h-10 rounded-xl overflow-hidden ring-1 ring-stone-200 dark:ring-stone-700 shrink-0 bg-stone-100 dark:bg-stone-800">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={u.image}
                         alt={u.name}
+                        referrerPolicy="no-referrer"
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -296,13 +297,13 @@ export default function AdminUsersPage() {
                       {u.name ? u.name.charAt(0).toUpperCase() : "U"}
                     </div>
                   )}
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h5 className="font-heading font-bold text-sm text-stone-900 dark:text-white">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <h5 className="font-heading font-bold text-sm text-stone-900 dark:text-white truncate">
                         {u.name}
                       </h5>
                       <span
-                        className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${
+                        className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border shrink-0 ${
                           u.role === "admin"
                             ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
                             : u.role === "vendor"
@@ -313,16 +314,16 @@ export default function AdminUsersPage() {
                         {u.role}
                       </span>
                       {u.isBlocked && (
-                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 border border-rose-500/20 shrink-0">
                           Blocked
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-stone-400 mt-0.5">{u.email}</p>
+                    <p className="text-xs text-stone-400 mt-0.5 truncate max-w-full" title={u.email}>{u.email}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
                   {/* View User Info Button */}
                   <button
                     onClick={() => setSelectedUser(u)}

@@ -125,10 +125,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     >
       {children}
 
-      {/* Top-Right Fixed Toast Container */}
+      {/* Top-Right Fixed Toast Container (Responsive for all screen sizes) */}
       <div
         aria-live="polite"
-        className="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none"
+        className="fixed top-4 left-4 right-4 sm:left-auto sm:right-5 sm:max-w-sm z-[9999] flex flex-col gap-2.5 pointer-events-none"
       >
         {toasts.map((toast) => {
           const styles = getToastStyles(toast.type);

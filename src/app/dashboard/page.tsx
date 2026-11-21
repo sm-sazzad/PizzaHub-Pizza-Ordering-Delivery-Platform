@@ -270,7 +270,7 @@ function CustomerOverview({
           </div>
 
           {/* Bar Chart Container */}
-          <div className="h-56 flex items-end justify-between gap-4 sm:gap-8 pt-8 pb-2 px-4 border-b border-stone-100 dark:border-stone-800">
+          <div className="h-56 flex items-end justify-between gap-2 sm:gap-6 lg:gap-8 pt-8 pb-2 px-1 sm:px-4 border-b border-stone-100 dark:border-stone-800">
             {orderBars.map((bar) => {
               const heightPercent =
                 maxBarValue > 0
@@ -280,32 +280,34 @@ function CustomerOverview({
               return (
                 <div
                   key={bar.label}
-                  className="flex-1 flex flex-col items-center h-full justify-end group"
+                  className="flex-1 min-w-0 flex flex-col items-center h-full justify-end group"
                 >
                   {/* Value tag above bar */}
-                  <span className="text-[11px] font-bold font-mono text-stone-700 dark:text-stone-300 mb-1.5 transition-transform group-hover:-translate-y-0.5">
+                  <span className="text-[10px] sm:text-[11px] font-bold font-mono text-stone-700 dark:text-stone-300 mb-1.5 transition-transform group-hover:-translate-y-0.5 shrink-0">
                     {isLoading ? "..." : bar.value}
                   </span>
 
-                  {/* Vertical Bar */}
-                  <div className="w-full max-w-[56px] bg-stone-100 dark:bg-stone-800/80 rounded-2xl p-1.5 flex items-end h-full">
+                  {/* Vertical Bar Capsule - flex-1 ensures all bars share the exact same height and bottom baseline */}
+                  <div className="w-full max-w-[38px] sm:max-w-[56px] flex-1 bg-stone-100 dark:bg-stone-800/80 rounded-xl sm:rounded-2xl p-1 sm:p-1.5 flex items-end">
                     <div
                       style={{ height: `${heightPercent}%` }}
-                      className={`w-full rounded-xl transition-all duration-500 ${bar.color}`}
+                      className={`w-full rounded-lg sm:rounded-xl transition-all duration-500 ${bar.color}`}
                     />
                   </div>
 
-                  {/* Label below bar */}
-                  <span className="text-xs font-bold text-stone-500 dark:text-stone-400 mt-2 text-center truncate max-w-full">
-                    {bar.label}
-                  </span>
+                  {/* Label below bar - Fixed height container so all 4 bars sit on the EXACT same baseline */}
+                  <div className="h-8 flex items-start justify-center mt-2 w-full shrink-0">
+                    <span className="text-[10px] sm:text-xs font-bold text-stone-500 dark:text-stone-400 text-center leading-tight max-w-full break-words">
+                      {bar.label}
+                    </span>
+                  </div>
                 </div>
               );
             })}
           </div>
 
           {/* Chart Legend */}
-          <div className="flex flex-wrap items-center justify-center gap-5 mt-4 pt-2 text-xs text-stone-500">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 mt-4 pt-2 text-[11px] sm:text-xs text-stone-500">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-red-600" /> Total Orders
             </span>
@@ -758,7 +760,7 @@ function VendorOverview({
           </div>
 
           {/* Bar Chart Container */}
-          <div className="h-56 flex items-end justify-between gap-4 sm:gap-8 pt-8 pb-2 px-4 border-b border-stone-100 dark:border-stone-800">
+          <div className="h-56 flex items-end justify-between gap-2 sm:gap-6 lg:gap-8 pt-8 pb-2 px-1 sm:px-4 border-b border-stone-100 dark:border-stone-800">
             {vendorBars.map((bar) => {
               const heightPercent =
                 maxVendorBarValue > 0
@@ -768,32 +770,34 @@ function VendorOverview({
               return (
                 <div
                   key={bar.label}
-                  className="flex-1 flex flex-col items-center h-full justify-end group"
+                  className="flex-1 min-w-0 flex flex-col items-center h-full justify-end group"
                 >
                   {/* Value tag above bar */}
-                  <span className="text-[11px] font-bold font-mono text-stone-700 dark:text-stone-300 mb-1.5 transition-transform group-hover:-translate-y-0.5">
+                  <span className="text-[10px] sm:text-[11px] font-bold font-mono text-stone-700 dark:text-stone-300 mb-1.5 transition-transform group-hover:-translate-y-0.5 shrink-0">
                     {isLoading ? "..." : bar.value}
                   </span>
 
-                  {/* Vertical Bar */}
-                  <div className="w-full max-w-[56px] bg-stone-100 dark:bg-stone-800/80 rounded-2xl p-1.5 flex items-end h-full">
+                  {/* Vertical Bar Capsule - flex-1 ensures all bars share the exact same height and bottom baseline */}
+                  <div className="w-full max-w-[38px] sm:max-w-[56px] flex-1 bg-stone-100 dark:bg-stone-800/80 rounded-xl sm:rounded-2xl p-1 sm:p-1.5 flex items-end">
                     <div
                       style={{ height: `${heightPercent}%` }}
-                      className={`w-full rounded-xl transition-all duration-500 ${bar.color}`}
+                      className={`w-full rounded-lg sm:rounded-xl transition-all duration-500 ${bar.color}`}
                     />
                   </div>
 
-                  {/* Label below bar */}
-                  <span className="text-xs font-bold text-stone-500 dark:text-stone-400 mt-2 text-center truncate max-w-full">
-                    {bar.label}
-                  </span>
+                  {/* Label below bar - Fixed height container so all 4 bars sit on the EXACT same baseline */}
+                  <div className="h-8 flex items-start justify-center mt-2 w-full shrink-0">
+                    <span className="text-[10px] sm:text-xs font-bold text-stone-500 dark:text-stone-400 text-center leading-tight max-w-full break-words">
+                      {bar.label}
+                    </span>
+                  </div>
                 </div>
               );
             })}
           </div>
 
           {/* Chart Legend */}
-          <div className="flex flex-wrap items-center justify-center gap-5 mt-4 pt-2 text-xs text-stone-500">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 mt-4 pt-2 text-[11px] sm:text-xs text-stone-500">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-red-600" /> Total Menu
             </span>
@@ -1249,25 +1253,27 @@ function AdminOverview({
               return (
                 <div
                   key={bar.label}
-                  className="flex-1 flex flex-col items-center h-full justify-end group"
+                  className="flex-1 min-w-0 flex flex-col items-center h-full justify-end group"
                 >
                   {/* Value tag above bar */}
-                  <span className="text-[11px] font-bold font-mono text-stone-700 dark:text-stone-300 mb-1.5 transition-transform group-hover:-translate-y-0.5">
+                  <span className="text-[11px] font-bold font-mono text-stone-700 dark:text-stone-300 mb-1.5 transition-transform group-hover:-translate-y-0.5 shrink-0">
                     {loading ? "..." : bar.value}
                   </span>
 
-                  {/* The Vertical Bar */}
-                  <div className="w-full max-w-[44px] bg-stone-100 dark:bg-stone-800/80 rounded-2xl p-1 flex items-end h-full">
+                  {/* The Vertical Bar Capsule */}
+                  <div className="w-full max-w-[44px] flex-1 bg-stone-100 dark:bg-stone-800/80 rounded-2xl p-1 flex items-end">
                     <div
                       style={{ height: `${heightPercent}%` }}
                       className={`w-full rounded-xl transition-all duration-500 ${bar.color}`}
                     />
                   </div>
 
-                  {/* Label below bar */}
-                  <span className="text-[10px] sm:text-[11px] font-bold text-stone-500 dark:text-stone-400 mt-2 text-center truncate max-w-full">
-                    {bar.label}
-                  </span>
+                  {/* Label below bar - Fixed height ensures identical bottom alignment */}
+                  <div className="h-8 flex items-start justify-center mt-2 w-full shrink-0">
+                    <span className="text-[10px] sm:text-[11px] font-bold text-stone-500 dark:text-stone-400 text-center leading-tight max-w-full break-words">
+                      {bar.label}
+                    </span>
+                  </div>
                 </div>
               );
             })}
