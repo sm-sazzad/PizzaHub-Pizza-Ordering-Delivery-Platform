@@ -1,89 +1,126 @@
-# PizzaHub — Artisan Pizza Ordering & Restaurant Management Web App
+# PizzaHub — Artisan Woodfired Pizza Ordering & Restaurant Management Platform
 
-PizzaHub is a full-stack food ordering platform built for ordering handcrafted, woodfired pizzas from independent kitchens. It includes role-based dashboards for Customers, Restaurant Vendors, and Platform Admins, along with Stripe subscription billing, live order tracking, and a verified customer review system.
+<p align="center">
+  <strong>A full-stack, role-based food ordering platform crafted with Next.js 16 (App Router), Tailwind CSS, Better Auth, MongoDB Atlas, and Stripe.</strong>
+  <strong>A full-stack, role-based food ordering platform crafted with Next.js 16 (App Router), Tailwind CSS, Better Auth, Express.js, MongoDB Atlas, and Stripe.</strong>
+</p>
 
-Built with **Next.js (App Router)**, **Express.js**, **MongoDB**, **Better Auth**, and **Tailwind CSS**.
+<p align="center">
+  <a href="https://pizzahub-delta.vercel.app" target="_blank"><strong>🌐 View Live Demo</strong></a> •
+  <a href="https://github.com/sm-sazzad/PizzaHub-Pizza-Ordering-Delivery-Platform" target="_blank"><strong>💻 GitHub Repository</strong></a>
+  <a href="https://pizzahub-delta.vercel.app" target="_blank"><strong>🌐 Live Client Demo</strong></a> •
+  <a href="https://pizzahub-server-iota.vercel.app/" target="_blank"><strong>⚡ Live Backend API</strong></a> •
+  <a href="https://github.com/sm-sazzad/PizzaHub-Pizza-Ordering-Delivery-Platform" target="_blank"><strong>💻 Client Repository</strong></a> •
+  <a href="https://github.com/sm-sazzad/PizzaHub-Server" target="_blank"><strong>🗄️ Server Repository</strong></a>
+</p>
 
 ---
 
 ## 🔗 Live Links & Repositories
 
-* **Live Frontend:** [https://pizzahub-client.vercel.app](https://pizzahub-client.vercel.app) *(Replace with your live client URL)*
-* **Live API Backend:** [https://pizzahub-server.onrender.com](https://pizzahub-server.onrender.com) *(Replace with your live server URL)*
-* **Client GitHub Repository:** [https://github.com/your-username/pizzahub-client](https://github.com/your-username/pizzahub-client)
-* **Server GitHub Repository:** [https://github.com/your-username/pizzahub-server](https://github.com/your-username/pizzahub-server)
+- **Live Demo Deployment:** [https://pizzahub-delta.vercel.app](https://pizzahub-delta.vercel.app)
+- **GitHub Repository:** [PizzaHub-Pizza-Ordering-Delivery-Platform](https://github.com/sm-sazzad/PizzaHub-Pizza-Ordering-Delivery-Platform)
+- **Repository Clone URL:** `https://github.com/sm-sazzad/PizzaHub-Pizza-Ordering-Delivery-Platform.git`
+- **Live Client Deployment:** [https://pizzahub-delta.vercel.app](https://pizzahub-delta.vercel.app)
+- **Live Backend API:** [https://pizzahub-server-iota.vercel.app/](https://pizzahub-server-iota.vercel.app/)
+- **Client GitHub Repository:** [PizzaHub-Pizza-Ordering-Delivery-Platform](https://github.com/sm-sazzad/PizzaHub-Pizza-Ordering-Delivery-Platform)
+- **Server GitHub Repository:** [PizzaHub-Server](https://github.com/sm-sazzad/PizzaHub-Server)
 
 ---
 
 ## 👤 Test Credentials for Evaluation
 
-You can use these pre-configured demo accounts to test each role without having to register from scratch:
+You can use these pre-configured active demo accounts to evaluate role-based features without creating new accounts:
 
-| Role | Email | Password | What You Can Test |
-| :--- | :--- | :--- | :--- |
-| **Admin** | `admin@pizzahub.com` | `Admin123!` | Approve/reject vendor pizzas, change user roles, block/unblock accounts, and view Stripe subscription revenue. |
-| **Vendor** | `luigi@woodfired.com` | `Vendor123!` | Add/edit pizzas (tested free tier max 3 limit), accept/reject orders, and test upgrading to Pro with Stripe. |
-| **Customer** | `alex@example.com` | `Customer123!` | Browse catalog, order a pizza with delivery date/notes, cancel pending orders, and submit verified 5-star reviews. |
+| Role         | Email              | Password       | Access & Capabilities                                                                                                                                                         |
+| :----------- | :----------------- | :------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Admin**    | `admin@gmail.com`  | `Admin123!`    | Manage all users, change user roles (Customer/Vendor/Admin), suspend/unblock accounts, approve or decline vendor pizza recipes, and inspect Stripe subscription transactions. |
+| **Vendor**   | `vendor@gmail.com` | `Vendor123!`   | Add new artisan pizzas (image uploads via ImgBB), edit menu items, manage incoming customer orders (Accept / Reject), and explore Pro membership.                             |
+| **Customer** | `shawon@gamil.com` | `Customer123!` | Browse menu, search & filter pizzas, place orders with custom delivery dates and notes, cancel pending orders, view order history, and submit verified reviews.               |
 
-*(Note: There are also quick-fill buttons on the Sign In page for one-click testing.)*
+_(Quick-fill demo buttons are also integrated directly into the `/signin` page for convenient 1-click evaluation.)_
 
 ---
 
 ## 🍕 Core Features
 
-### For Customers
-* **Artisan Hero Showcase:** Interactive preview of dough styles (Diavola, Truffle, Margherita) on the landing page with smooth Framer Motion animations.
-* **Menu Browsing & Search:** Search pizzas by name, filter by food category, filter by kitchen location, and sort by price (low to high / high to low).
-* **Pizza Details & Ordering:** Full description, multiple photo thumbnails, woodfired oven badges, and order popup with date picker, address, phone, and delivery notes.
-* **Duplicate Order Prevention:** Prevents placing duplicate active orders (pending/accepted) for the same pizza on the same delivery date.
-* **My Orders Page:** View past and current orders with real-time status badges, and cancel any order while it is still in "Pending" status.
-* **Verified Customer Reviews:** Only customers who have actually ordered a pizza can submit ratings (1 to 5 stars) and feedback. If you already reviewed an item, you can edit and update your review.
+### 1. Customer Experience
 
-### For Vendors
-* **Add & Edit Pizzas:** Upload multiple photos (hosted directly via ImgBB), specify category, price, description, and location.
-* **Free Plan Limit (Max 3 Items):** Free tier vendors are limited to 3 items. Trying to add a 4th item prompts an upgrade reminder.
-* **Pro Vendor Upgrade (Stripe):** Vendors can upgrade to the Premium plan for $29/month via Stripe Checkout to unlock unlimited menu items.
-* **Kitchen Order Management:** Live list of incoming customer orders with customer contact details, delivery address, notes, and one-click "Accept" or "Reject" buttons.
+- **Artisan Hero Showcase:** Interactive preview of woodfired dough styles (Diavola, Margherita, Truffle) with dynamic telemetry and smooth Framer Motion animations.
+- **Smart Menu Filtering & Search:** Real-time search by pizza name, instant categorization filters (Classic, Spicy, Vegetarian, BBQ, Specialty), location filters, and price sorting (Low-to-High / High-to-Low).
+- **Pizza Details & Custom Ordering:** High-res image galleries, allergen and ingredient breakdowns, woodfired oven badges, and an intuitive order modal with custom delivery dates and special instruction notes.
+- **Duplicate Active Order Prevention:** Prohibits duplicate pending/accepted orders for the exact same pizza on the same delivery date.
+- **Order Management (`/dashboard/my-orders`):** Live order tracking with status badges (`Pending`, `Accepted`, `Rejected`, `Cancelled`), with one-click order cancellation for pending requests.
+- **Verified Customer Review System:** Only customers who have ordered a pizza can submit star ratings and detailed reviews, with the ability to update their existing reviews.
 
-### For Admins
-* **User Management:** View all registered accounts, change roles (Customer / Vendor / Admin), and immediately block or unblock accounts.
-* **Menu Approvals:** Review new pizzas submitted by vendors and either approve them (making them live on the public menu) or reject them.
-* **Transactions Ledger:** View a financial log of all vendor Stripe subscription payments with total revenue calculation.
+### 2. Vendor Portal (`/dashboard`)
 
-### Design & Polish
-* **Dark / Light Mode:** Clean theme switcher with persistent local storage state.
-* **Skeleton Loaders:** Custom skeleton animations for cards, tables, detail views, and page routes so the app never feels blank while loading.
-* **Pointer Cursors:** Consistent hand pointer on all buttons, dropdowns, links, and avatar menus, with proper not-allowed state on disabled buttons.
+- **Recipe & Menu Publishing:** Add and update artisan pizzas with multiple photo uploads hosted via the ImgBB API, category tagging, pricing, and kitchen location details.
+- **Tiered Subscription Limits:** Free-tier vendors can publish up to 3 active menu items. Reaching the threshold provides an upgrade notice.
+- **Stripe Premium Upgrade:** Seamless integration with Stripe Checkout to unlock unlimited active menu items and verified kitchen partner status.
+- **Incoming Order Dispatch:** Live feed of incoming customer orders showing customer contact numbers, delivery addresses, custom notes, and instant `Accept` / `Reject` dispatch buttons.
+
+### 3. Administrator Operations
+
+- **User Management:** Complete roster of registered platform users with ability to toggle roles (Customer, Vendor, Admin) and immediately suspend/unblock accounts.
+- **Menu Moderation:** Review queue for vendor-submitted pizzas with immediate approval/decline controls.
+- **Financial Ledger:** Real-time calculation and listing of all vendor subscription transactions processed through Stripe.
+
+### 4. UI/UX & Responsive Excellence
+
+- **Mobile-First Responsive Layout:** Custom responsive navigation drawer, zero horizontal overflow, and responsive data tables & charts.
+- **Adaptive Dark & Light Theme:** Persistent theme toggling powered by local storage.
+- **Zero Layout Shift Skeletons:** Animated skeleton loaders across menu cards, analytics charts, and detail views.
+- **Toast Notifications:** Screen-safe notification system tailored for small mobile viewports and desktop screens.
 
 ---
 
 ## 💻 Tech Stack
 
-* **Frontend:** Next.js 16 (App Router), React 19, TypeScript
-* **Styling & Motion:** Tailwind CSS, Framer Motion
-* **Authentication:** Better Auth (JWT plugin with public JWKS verification)
-* **Backend:** Express.js 5, Node.js (ES Modules)
-* **Database:** MongoDB Atlas (Native MongoDB driver)
-* **Payments:** Stripe Checkout
-* **Image Hosting:** ImgBB API
+### Frontend
+
+- **Framework:** Next.js 16 (App Router)
+- **Library:** React 19
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Animations:** Framer Motion & Lucide Icons
+- **Authentication Client:** Better Auth Client
+
+### Backend & Cloud Services
+
+- **Server Framework:** Express.js 5 & Node.js (ES Modules)
+- **Database:** MongoDB Atlas (Native MongoDB Node.js Driver)
+- **Authentication:** Better Auth (JWT plugin with public JWKS token verification via `jose`)
+- **Payments:** Stripe Checkout API
+- **Image Hosting:** ImgBB API
+- **Deployment:** Vercel
 
 ---
 
-## 🛠️ How to Run Locally
+## 🛠️ Getting Started Locally
+
+### Prerequisites
+
+- Node.js 18.x or later installed
+- Git installed
+- MongoDB Atlas database connection string
 
 ### 1. Clone the repository
+
 ```bash
-git clone https://github.com/your-username/pizzahub-client.git
-cd pizzahub-client
+git clone https://github.com/sm-sazzad/PizzaHub-Pizza-Ordering-Delivery-Platform.git
+cd PizzaHub-Pizza-Ordering-Delivery-Platform
 ```
 
 ### 2. Install dependencies
+
 ```bash
 npm install
 ```
 
-### 3. Environment Variables
-Create a `.env.local` file in the root folder with the following variables:
+### 3. Configure Environment Variables
+
+Create a `.env.local` file in the root of `pizzahub-client` and add your credentials:
 
 ```env
 # Better Auth Configuration
@@ -91,45 +128,57 @@ BETTER_AUTH_SECRET=your_better_auth_secret_key
 BETTER_AUTH_URL=http://localhost:3000
 BETTER_AUTH_DB_URL=mongodb+srv://<username>:<password>@cluster.mongodb.net/PizzaHub
 
-# Google OAuth (Optional for social login)
+# Google OAuth (Optional Social Login)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-# ImgBB API Key (For hosting pizza & avatar photos)
+# ImgBB API Key (For hosting pizza images & avatar uploads)
 NEXT_PUBLIC_IMGBB_API_KEY=your_imgbb_api_key
 
 # Express Backend URL
 NEXT_PUBLIC_API_URL=http://localhost:5000
+# Express Backend URL (Local or Production)
+NEXT_PUBLIC_API_URL=https://pizzahub-server-iota.vercel.app
 
 # Stripe Payment Keys (Test Mode)
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
 STRIPE_SECRET_KEY=sk_test_your_secret_key
 ```
 
-### 4. Start development server
+### 4. Run Development Server
+
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser. (Make sure your Express server is also running on port 5000).
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 💡 Challenges I Handled in this Project
+## 💡 Engineering Challenges & Solutions
 
-Here are a few tricky requirements from the assignment and how I solved them:
+1. **Stateless Cross-Service JWT Verification (Better Auth + Express)**
+   - _Challenge:_ The frontend runs on Next.js with Better Auth, while API operations run on a decoupled Express server.
+   - _Solution:_ Better Auth's JWT plugin was leveraged with public JWKS exposure at `/api/auth/jwks`. The Express server utilizes `createRemoteJWKSet` from `jose` to cryptographically verify incoming Bearer tokens directly, eliminating double database lookups.
 
-### 1. Blocking Duplicate Active Orders
-* **The Problem:** A customer shouldn't be able to accidentally spam-order the exact same pizza for the same delivery date while their previous order is still pending or accepted.
-* **How I solved it:** In the backend `POST /orders` handler, before saving the order, I run a query checking if there is already an order with `{ customerEmail, menuItemId, deliveryDate, status: { $in: ["pending", "accepted"] } }`. If found, the server sends back a `409 Conflict` error and the frontend shows a helpful warning toast.
+2. **Atomic Duplicate Order Prevention**
+   - _Challenge:_ Preventing customers from accidentally triggering duplicate simultaneous orders for the same item and delivery slot.
+   - _Solution:_ The order creation pipeline queries active orders matching `{ customerEmail, menuItemId, deliveryDate, status: { $in: ["pending", "accepted"] } }` before inserting, rejecting duplicates with HTTP 409 Conflict.
 
-### 2. JWT Flow with Remote JWKS
-* **The Problem:** The frontend runs on Next.js with Better Auth, while the API runs separately on Express. Sharing secrets or querying the database twice for every token verification can be messy.
-* **How I solved it:** I configured Better Auth's JWT plugin so it exposes public JSON Web Key Sets at `/api/auth/jwks`. On the Express server, I used the `jose` library's `createRemoteJWKSet` to verify incoming Bearer tokens directly against Better Auth's public keys. This keeps the auth stateless and cleanly decoupled.
+3. **Strict RBAC & Instant Suspension Propagation**
+   - _Challenge:_ Blocking users must immediately revoke ordering and menu management capabilities even if an existing JWT has not yet expired.
+   - _Solution:_ Middleware hooks (`verifyAdmin`, `verifyVendor`, `verifyCustomer`) perform an indexed lookup on `isBlocked` before executing protected mutations, instantly denying access with a 403 response if suspended.
 
-### 3. Immediate Account Suspension
-* **The Problem:** When an admin blocks a user, that user should not be able to place orders or modify catalog items even if their token has not expired yet.
-* **How I solved it:** Every protected middleware (`verifyAdmin`, `verifyVendor`, `verifyCustomer`) does a quick check against the database to confirm `dbUser.isBlocked` is false. If blocked, it immediately returns `403 Forbidden`, and the client redirects them to a dedicated `/blocked` notice page.
+4. **Synchronized Bar Chart Baselines Across Varying Label Lengths**
+   - _Challenge:_ Mobile bar charts suffered from uneven vertical capsule alignment when label text wrapped into multiple lines.
+   - _Solution:_ Implemented fixed label height boundaries combined with flexible capsule stretch (`flex-1`), mathematically guaranteeing that all chart bars sit on the exact same horizontal baseline across all device widths.
 
-### 4. Multi-Facet Filtering on the Menu Page
-* **The Problem:** Users need to search by name, filter by category buttons, filter by kitchen location, and sort by price all at the same time without conflicting states.
-* **How I solved it:** In `src/app/menu/page.tsx`, I extracted unique locations dynamically from the loaded items, and piped the item list through a clean chained filter checking name match, active category, and selected location, followed by sorting. This keeps the UI responsive without needing multiple API refetches.
+---
+
+## 👨‍💻 Author & Connect
+
+- **Author:** Sheikh Md. Sazzad Hossain
+- **LinkedIn:** [linkedin.com/in/sm-sazzad](https://linkedin.com/in/sm-sazzad/)
+- **GitHub:** [@sm-sazzad](https://github.com/sm-sazzad)
+
+---
