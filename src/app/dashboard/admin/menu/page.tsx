@@ -8,6 +8,7 @@ import {
   FilterIcon,
   CheckIcon,
   RefreshIcon,
+  CloseIcon,
 } from "@/components/ui/Icons";
 import { getTokenClient } from "@/lib/tokenAccess";
 import { TableRowSkeleton } from "@/components/ui/Skeleton";
@@ -37,6 +38,13 @@ export default function AdminMenuPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+
+  // Delete Confirmation state
+  const [itemToDelete, setItemToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 4. Fetch menu items from backend
   useEffect(() => {
@@ -109,6 +117,44 @@ export default function AdminMenuPage() {
     } catch (err) {
       console.error("Update item status error:", err);
       toast.error(`Failed to update status for "${name}". Please try again.`, "Update Failed");
+    }
+  };
+
+  // 6. Delete inappropriate item from catalog
+  const confirmDeleteItem = async () => {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
+
+    try {
+      const serverUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const res = await fetch(`${serverUrl}/admin/menu/${itemToDelete.id}`, {
+        method: "DELETE",
+        headers: {
+          authorization: `Bearer ${await getTokenClient()}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
+
+      const resData = await res.json();
+      if (resData.deletedCount > 0) {
+        setItems((prev) => prev.filter((i) => i._id !== itemToDelete.id));
+        toast.success(
+          `"${itemToDelete.name}" was permanently removed from the catalog.`,
+          "Item Deleted",
+        );
+        setItemToDelete(null);
+      } else {
+        toast.error("Could not delete item from database.", "Delete Failed");
+      }
+    } catch (err) {
+      console.error("Delete menu item error:", err);
+      toast.error(`Failed to delete "${itemToDelete.name}".`, "Delete Error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -457,6 +503,18 @@ export default function AdminMenuPage() {
                         Re-Approve
                       </button>
                     )}
+
+                    {/* Delete inappropriate item */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setItemToDelete({ id: item._id, name: item.itemName })
+                      }
+                      title="Delete inappropriate item"
+                      className="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/40 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               );
@@ -464,6 +522,43 @@ export default function AdminMenuPage() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal for Deleting Inappropriate Items */}
+      {itemToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-6 sm:p-7 shadow-2xl space-y-5 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto">
+              <CloseIcon size={24} />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="font-heading text-lg font-bold text-stone-900 dark:text-white">
+                Delete Inappropriate Item?
+              </h3>
+              <p className="text-xs text-stone-500 leading-relaxed">
+                Are you sure you want to delete <strong className="text-stone-800 dark:text-stone-200">&ldquo;{itemToDelete.name}&rdquo;</strong>? This item will be permanently removed from the catalog.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setItemToDelete(null)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={confirmDeleteItem}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? "Deleting..." : "Yes, Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -172,7 +172,7 @@ export default function DashboardLayout({
 
         <button
           onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-          className="p-2 rounded-xl text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
+          className="p-2 rounded-xl text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
           aria-label="Toggle navigation sidebar"
         >
           {mobileSidebarOpen ? <CloseIcon size={22} /> : <MenuIcon size={22} />}
@@ -243,7 +243,7 @@ export default function DashboardLayout({
                   key={item.name}
                   href={item.href}
                   onClick={() => setMobileSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
                     isActive
                       ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 shadow-xs"
                       : "text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800/60 hover:text-stone-900 dark:hover:text-stone-100"
@@ -306,7 +306,7 @@ export default function DashboardLayout({
           {isLoggedIn ? (
             <button
               onClick={() => logout()}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:text-red-600 hover:border-red-500/30 text-xs font-semibold transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:text-red-600 hover:border-red-500/30 text-xs font-semibold transition-colors cursor-pointer"
             >
               <LogOutIcon size={14} />
               <span>Sign Out</span>
@@ -314,7 +314,7 @@ export default function DashboardLayout({
           ) : (
             <Link
               href="/signin"
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors shadow-xs"
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors shadow-xs cursor-pointer"
             >
               <span>Sign In to Your Account</span>
             </Link>

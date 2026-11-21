@@ -23,7 +23,13 @@ import {
 } from "@/components/ui/Icons";
 
 export default function ProfilePage() {
-  const { user, isLoggedIn, isLoading: authLoading, logout, refreshSession } = useAuth();
+  const {
+    user,
+    isLoggedIn,
+    isLoading: authLoading,
+    logout,
+    refreshSession,
+  } = useAuth();
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -34,7 +40,9 @@ export default function ProfilePage() {
 
   // Avatar upload states
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.image || null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    user?.image || null,
+  );
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -53,7 +61,10 @@ export default function ProfilePage() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Please upload a valid image file (JPG, PNG, WebP).", "Invalid File");
+      toast.error(
+        "Please upload a valid image file (JPG, PNG, WebP).",
+        "Invalid File",
+      );
       return;
     }
 
@@ -94,7 +105,10 @@ export default function ProfilePage() {
           finalImageUrl = await uploadToImgBB(avatarFile);
         } catch (uploadError) {
           console.warn("Avatar upload failed:", uploadError);
-          toast.error("Failed to upload avatar image. Please try again.", "Upload Error");
+          toast.error(
+            "Failed to upload avatar image. Please try again.",
+            "Upload Error",
+          );
           setIsSaving(false);
           return;
         }
@@ -113,7 +127,8 @@ export default function ProfilePage() {
       // 3. Update custom fields (e.g., businessName) in backend if vendor
       if (user?.role === "vendor" && user?.id) {
         try {
-          const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const baseUrl =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
           await fetch(`${baseUrl}/users/${user.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -135,7 +150,8 @@ export default function ProfilePage() {
       toast.success("Profile updated successfully!", "Changes Saved");
       setAvatarFile(null);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to update profile.";
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to update profile.";
       toast.error(errorMsg, "Update Error");
     } finally {
       setIsSaving(false);
@@ -147,7 +163,9 @@ export default function ProfilePage() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center">
         <div className="w-10 h-10 border-4 border-red-500/20 border-t-red-600 rounded-full animate-spin mb-4" />
-        <p className="text-xs font-semibold text-stone-500">Loading your profile...</p>
+        <p className="text-xs font-semibold text-stone-500">
+          Loading your profile...
+        </p>
       </div>
     );
   }
@@ -163,7 +181,8 @@ export default function ProfilePage() {
           Sign In Required
         </h2>
         <p className="text-xs text-stone-500 max-w-sm mb-6">
-          Please sign in to view and manage your PizzaHub profile and preferences.
+          Please sign in to view and manage your PizzaHub profile and
+          preferences.
         </p>
         <Link
           href="/signin"
@@ -197,7 +216,8 @@ export default function ProfilePage() {
             Account Profile
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-            Manage your personal details, avatar photo, and platform account credentials.
+            Manage your personal details, avatar photo, and platform account
+            credentials.
           </p>
         </div>
 
@@ -243,8 +263,8 @@ export default function ProfilePage() {
                   isAdmin
                     ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
                     : isVendor
-                    ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                    : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                      ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                      : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                 }`}
               >
                 {user.role}
@@ -287,7 +307,8 @@ export default function ProfilePage() {
               Personal Information
             </h3>
             <p className="text-xs text-stone-500 mt-0.5">
-              Update your display name and photo shown across orders and reviews.
+              Update your display name and photo shown across orders and
+              reviews.
             </p>
           </div>
 
@@ -321,7 +342,9 @@ export default function ProfilePage() {
                   <span className="font-semibold text-stone-800 dark:text-stone-200 truncate max-w-xs">
                     {avatarFile.name}
                   </span>
-                  <span>({(avatarFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                  <span>
+                    ({(avatarFile.size / (1024 * 1024)).toFixed(2)} MB)
+                  </span>
                   <button
                     type="button"
                     onClick={handleRemoveAvatar}
@@ -334,7 +357,8 @@ export default function ProfilePage() {
               )}
             </div>
             <p className="text-[11px] text-stone-400">
-              JPG, PNG, or WebP up to 5MB. Photo updates automatically upon saving.
+              JPG, PNG, or WebP up to 5MB. Photo updates automatically upon
+              saving.
             </p>
           </div>
 
@@ -370,7 +394,10 @@ export default function ProfilePage() {
                 htmlFor="profileEmail"
                 className="block text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300"
               >
-                Email Address <span className="text-stone-400 font-normal">(Primary Login)</span>
+                Email Address{" "}
+                <span className="text-stone-400 font-normal">
+                  (Primary Login)
+                </span>
               </label>
               <div className="relative">
                 <MailIcon
@@ -463,7 +490,10 @@ export default function ProfilePage() {
           <div className="space-y-2 max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
               <CreditCardIcon size={14} />
-              <span>Subscription Tier: {isPremium ? "Premium (Unlimited)" : "Free (3 Items)"}</span>
+              <span>
+                Subscription Tier:{" "}
+                {isPremium ? "Premium (Unlimited)" : "Free (3 Items)"}
+              </span>
             </div>
             <h4 className="font-heading text-lg font-bold">
               {isPremium
@@ -498,7 +528,8 @@ export default function ProfilePage() {
                 Customer Quick Links
               </h4>
               <p className="text-xs text-stone-500">
-                Check pending pizza deliveries, track order history, or discover new recipes.
+                Check pending pizza deliveries, track order history, or discover
+                new recipes.
               </p>
             </div>
           </div>
@@ -531,7 +562,8 @@ export default function ProfilePage() {
                 System Administrator Privileges
               </h4>
               <p className="text-xs text-stone-500">
-                You have elevated permissions to manage users, approve recipes, and review Stripe logs.
+                You have elevated permissions to manage users, approve recipes,
+                and review Stripe logs.
               </p>
             </div>
           </div>

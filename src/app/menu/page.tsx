@@ -326,7 +326,7 @@ function BrowseMenuContent() {
 
                     <Link
                       href={`/menu/${pizzaId}`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer"
                     >
                       <span>View Details</span>
                       <ArrowRightIcon size={14} />

@@ -162,7 +162,7 @@ function SignUpForm() {
     try {
       await signIn.social({
         provider: "google",
-        callbackURL: role === "vendor" ? "/dashboard" : "/",
+        callbackURL: role === "vendor" ? "/dashboard?signup=success" : "/?signup=success",
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to connect to Google OAuth.";
@@ -207,7 +207,7 @@ function SignUpForm() {
               <button
                 type="button"
                 onClick={() => setRole("customer")}
-                className={`p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between ${
+                className={`p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
                   role === "customer"
                     ? "bg-red-500/10 border-red-500 text-red-700 dark:text-red-400 shadow-sm ring-1 ring-red-500"
                     : "bg-stone-50 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700/80 text-stone-700 dark:text-stone-300 hover:border-red-400"
@@ -235,7 +235,7 @@ function SignUpForm() {
               <button
                 type="button"
                 onClick={() => setRole("vendor")}
-                className={`p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between ${
+                className={`p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
                   role === "vendor"
                     ? "bg-amber-500/10 border-amber-500 text-amber-700 dark:text-amber-400 shadow-sm ring-1 ring-amber-500"
                     : "bg-stone-50 dark:bg-stone-800/60 border-stone-200 dark:border-stone-700/80 text-stone-700 dark:text-stone-300 hover:border-amber-400"
@@ -269,7 +269,7 @@ function SignUpForm() {
             type="button"
             onClick={handleGoogleSignUp}
             disabled={isLoading}
-            className="w-full py-3.5 px-4 rounded-2xl bg-stone-50 dark:bg-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700/80 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-3 transition-all duration-200 shadow-xs hover:shadow-md"
+            className="w-full py-3.5 px-4 rounded-2xl bg-stone-50 dark:bg-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700/80 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-3 transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer"
           >
             <GoogleIcon size={18} />
             <span>Continue with Google</span>
@@ -385,7 +385,7 @@ function SignUpForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 focus:outline-none"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 focus:outline-none cursor-pointer"
                   aria-label="Toggle password visibility"
                 >
                   {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
@@ -459,7 +459,7 @@ function SignUpForm() {
                   <button
                     type="button"
                     onClick={handleRemoveImage}
-                    className="p-1.5 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    className="p-1.5 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                     title="Remove image"
                   >
                     <CloseIcon size={18} />
@@ -488,7 +488,7 @@ function SignUpForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-sm shadow-lg shadow-red-600/25 hover:shadow-xl hover:shadow-red-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed"
+              className="w-full mt-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-sm shadow-lg shadow-red-600/25 hover:shadow-xl hover:shadow-red-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <span>Creating Account...</span>

@@ -22,7 +22,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       onClick={toggleTheme}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className={`group relative p-2.5 rounded-xl border transition-all duration-300 focus:outline-none flex items-center gap-2 ${
+      className={`group relative p-2.5 rounded-xl border transition-all duration-300 focus:outline-none flex items-center gap-2 cursor-pointer ${
         isDark
           ? "bg-stone-800/90 hover:bg-stone-700/90 border-stone-700 text-amber-400 hover:text-amber-300 shadow-sm shadow-amber-500/10"
           : "bg-stone-100/90 hover:bg-stone-200/90 border-stone-200 text-stone-700 hover:text-stone-900 shadow-sm"

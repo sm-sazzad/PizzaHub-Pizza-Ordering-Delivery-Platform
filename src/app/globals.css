@@ -90,6 +90,45 @@ select option {
   color: #f5f3f0;
 }
 
+/* Ensure all clickable buttons and interactive controls have pointer cursor */
+a,
+a *,
+button,
+button *,
+select,
+select *,
+summary,
+summary *,
+[role="button"],
+[role="button"] *,
+[type="button"],
+[type="button"] *,
+[type="submit"],
+[type="submit"] *,
+[type="reset"],
+[type="reset"] *,
+label[for],
+label[for] *,
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+.cursor-pointer,
+.cursor-pointer * {
+  cursor: pointer !important;
+}
+
+/* Disabled controls must strictly show not-allowed */
+button:disabled,
+button:disabled *,
+input:disabled,
+select:disabled,
+[disabled],
+[disabled] *,
+[aria-disabled="true"],
+[aria-disabled="true"] * {
+  cursor: not-allowed !important;
+}
+
 /* Hide scrollbar utility */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

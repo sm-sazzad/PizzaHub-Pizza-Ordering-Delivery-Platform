@@ -43,19 +43,34 @@ export default function SignInPage() {
       });
 
       if (res.error) {
-        toast.error(res.error.message || "Invalid email or password.", "Sign In Failed");
+        toast.error(
+          res.error.message || "Invalid email or password.",
+          "Sign In Failed",
+        );
         setIsLoading(false);
         return;
       }
 
-      toast.success("Welcome back! Redirecting to dashboard...", "Success");
+      const userRole = (res.data?.user as unknown as { role?: string })?.role;
+      const destination =
+        userRole === "vendor" || userRole === "admin" ? "/dashboard" : "/";
+
+      toast.success(
+        userRole === "vendor" || userRole === "admin"
+          ? "Welcome back! Redirecting to dashboard..."
+          : "Welcome back!",
+        "Success",
+      );
       await refreshSession();
 
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push(destination);
       }, 700);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to sign in. Please try again.";
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : "Failed to sign in. Please try again.";
       toast.error(errorMsg, "Sign In Error");
     } finally {
       setIsLoading(false);
@@ -67,10 +82,13 @@ export default function SignInPage() {
     try {
       await signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: "/?login=success",
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to connect to Google OAuth.";
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to connect to Google OAuth.";
       toast.error(message, "OAuth Error");
       setIsLoading(false);
     }
@@ -87,7 +105,10 @@ export default function SignInPage() {
         <div className="rounded-3xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-8 sm:p-10 shadow-2xl transition-all">
           {/* Header */}
           <div className="text-center space-y-2 mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 group mb-2">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 group mb-2"
+            >
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center text-white shadow-md shadow-red-600/30">
                 <PizzaIcon size={22} className="text-white" />
               </div>
@@ -99,7 +120,8 @@ export default function SignInPage() {
               Sign In to Your Account
             </h1>
             <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400">
-              Welcome back! Enjoy artisanal stone-baked pizzas or manage your kitchen.
+              Welcome back! Enjoy artisanal stone-baked pizzas or manage your
+              kitchen.
             </p>
           </div>
 
@@ -108,7 +130,7 @@ export default function SignInPage() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full py-3.5 px-4 rounded-2xl bg-stone-50 dark:bg-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700/80 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-3 transition-all duration-200 shadow-xs hover:shadow-md"
+            className="w-full py-3.5 px-4 rounded-2xl bg-stone-50 dark:bg-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700/80 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-3 transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer"
           >
             <GoogleIcon size={18} />
             <span>Continue with Google</span>
@@ -182,10 +204,14 @@ export default function SignInPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 focus:outline-none"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 focus:outline-none cursor-pointer"
                   aria-label="Toggle password visibility"
                 >
-                  {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
+                  {showPassword ? (
+                    <EyeOffIcon size={18} />
+                  ) : (
+                    <EyeIcon size={18} />
+                  )}
                 </button>
               </div>
             </div>
@@ -194,7 +220,7 @@ export default function SignInPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-sm shadow-lg shadow-red-600/25 hover:shadow-xl hover:shadow-red-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold text-sm shadow-lg shadow-red-600/25 hover:shadow-xl hover:shadow-red-600/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
             >
               {isLoading ? (
                 <span>Authenticating...</span>
@@ -206,37 +232,6 @@ export default function SignInPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Login Preset Buttons for easy assignment grading */}
-          <div className="mt-6 pt-5 border-t border-stone-100 dark:border-stone-800 space-y-2">
-            <div className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider text-center">
-              Quick Test Credentials
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("alex@example.com");
-                  setPassword("Customer123");
-                  toast.info("Customer credentials loaded into fields.", "Preset Loaded");
-                }}
-                className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800/80 text-[11px] font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-200 text-left truncate"
-              >
-                🍕 Customer Demo
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("luigi@woodfired.com");
-                  setPassword("Vendor123");
-                  toast.info("Vendor credentials loaded into fields.", "Preset Loaded");
-                }}
-                className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800/80 text-[11px] font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-200 text-left truncate"
-              >
-                🏪 Vendor Demo
-              </button>
-            </div>
-          </div>
 
           {/* Footer note */}
           <div className="mt-6 text-center text-xs text-stone-500 dark:text-stone-400">

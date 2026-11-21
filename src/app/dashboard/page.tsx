@@ -105,12 +105,19 @@ function CustomerOverview({
             ).length,
           });
 
-          // Calculate total spending
-          const spent = rawOrders.reduce(
-            (sum: number, o: { price?: number }) =>
-              sum + (typeof o.price === "number" ? o.price : 0),
-            0,
-          );
+          // Calculate total spending (excluding cancelled and rejected orders)
+          const spent = rawOrders
+            .filter(
+              (o: { status: string }) =>
+                o.status !== "cancelled" &&
+                o.status !== "cancled" &&
+                o.status !== "rejected",
+            )
+            .reduce(
+              (sum: number, o: { price?: number }) =>
+                sum + (typeof o.price === "number" ? o.price : 0),
+              0,
+            );
           setTotalSpent(spent);
         }
       } catch {

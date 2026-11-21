@@ -1,8 +1,9 @@
 "use client";
 
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authClient, signOut } from "@/lib/auth-client";
+import { useToast } from "@/context/ToastContext";
 
 export type UserRole = "customer" | "vendor" | "admin";
 
@@ -31,8 +32,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const router = useRouter();
+  const toast = useToast();
 
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending, refetch } = authClient.useSession();
+
+  // Check URL for OAuth login/signup redirect parameters
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("login") === "success") {
+        toast.success("Welcome back! Signed in with Google.", "Sign In Successful");
+        window.history.replaceState({}, "", window.location.pathname);
+      } else if (params.get("signup") === "success") {
+        toast.success("Account created successfully with Google!", "Registration Complete");
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, [toast]);
 
   const user: User | null = session?.user
     ? {
@@ -49,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           ((session.user as unknown as Record<string, unknown>)
             .subscriptionPlan as "free" | "premium") || "free",
         isBlocked: Boolean(
-          (session.user as unknown as Record<string, unknown>).isBlocked
+          (session.user as unknown as Record<string, unknown>).isBlocked,
         ),
       }
     : null;
@@ -57,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     try {
       await signOut();
+      toast.success("You have been signed out.", "Signed Out");
     } catch (err) {
       console.error("Sign out error:", err);
     }
@@ -65,7 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const refreshSession = async () => {
     try {
-      await authClient.getSession();
+      await authClient.getSession({ query: { disableCookieCache: true } });
+      await refetch();
     } catch (err) {
       console.error("Session refresh error:", err);
     }

@@ -47,16 +47,12 @@ export default function MenuItemDetailsPage({
   const { user, isLoggedIn, isLoading: authLoading } = useAuth();
   const toast = useToast();
 
-  // PDF Requirement: Item Details (/menu/[id], redirect to Sign In if not logged in)
+  // Session check: if not logged in, redirect to login page
   useEffect(() => {
     if (!authLoading && !isLoggedIn) {
-      toast.warning(
-        "Please sign in to view menu item details and place orders.",
-        "Sign In Required",
-      );
       router.replace("/signin");
     }
-  }, [authLoading, isLoggedIn, router, toast]);
+  }, [authLoading, isLoggedIn, router]);
 
   // Role check: Admins and Vendors cannot place orders
   const isAdminOrVendor = user?.role === "admin" || user?.role === "vendor";
@@ -83,9 +79,9 @@ export default function MenuItemDetailsPage({
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch item details from API endpoint /menu?id=:id
+  // Fetch item details from API endpoint /menu?id=:id only when user is authenticated
   useEffect(() => {
-    if (isInvalidId) return;
+    if (isInvalidId || authLoading || !isLoggedIn) return;
 
     const fetchItemDetails = async () => {
       try {
@@ -127,7 +123,7 @@ export default function MenuItemDetailsPage({
     };
 
     fetchItemDetails();
-  }, [id, isInvalidId]);
+  }, [id, isInvalidId, authLoading, isLoggedIn]);
 
   // Handle clicking "Order Now"
   const handleOpenOrderModal = () => {
@@ -306,16 +302,9 @@ export default function MenuItemDetailsPage({
     }
   };
 
-  // 0. If authentication is loading or user is not logged in, wait or show spinner
+  // 0. If authentication is loading or user is not logged in, show skeleton while redirecting
   if (authLoading || !isLoggedIn) {
-    return (
-      <div className="max-w-5xl mx-auto py-24 px-4 text-center">
-        <div className="w-12 h-12 border-4 border-red-500/20 border-t-red-600 rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-sm font-semibold text-stone-500">
-          Verifying access...
-        </p>
-      </div>
-    );
+    return <PizzaDetailSkeleton />;
   }
 
   // 1. If ID is invalid or item is not found, trigger Next.js notFound()

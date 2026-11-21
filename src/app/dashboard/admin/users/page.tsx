@@ -34,7 +34,9 @@ export default function AdminUsersPage() {
 
   // State for Change Role modal
   const [roleModalUser, setRoleModalUser] = useState<UserItem | null>(null);
-  const [newRole, setNewRole] = useState<"customer" | "vendor" | "admin">("customer");
+  const [newRole, setNewRole] = useState<"customer" | "vendor" | "admin">(
+    "customer",
+  );
   const [isUpdatingRole, setIsUpdatingRole] = useState(false);
 
   useEffect(() => {
@@ -62,7 +64,11 @@ export default function AdminUsersPage() {
     fetchUsers();
   }, []);
 
-  const handleToggleBlock = async (id: string, name: string, isBlocked: boolean) => {
+  const handleToggleBlock = async (
+    id: string,
+    name: string,
+    isBlocked: boolean,
+  ) => {
     const nextState = !isBlocked;
     try {
       const serverUrl =
@@ -86,16 +92,28 @@ export default function AdminUsersPage() {
           prev.map((u) => (u._id === id ? { ...u, isBlocked: nextState } : u)),
         );
         if (nextState) {
-          toast.warning(`Account for ${name} has been blocked.`, "User Blocked");
+          toast.warning(
+            `Account for ${name} has been blocked.`,
+            "User Blocked",
+          );
         } else {
-          toast.success(`Account for ${name} has been unblocked.`, "User Unblocked");
+          toast.success(
+            `Account for ${name} has been unblocked.`,
+            "User Unblocked",
+          );
         }
       } else {
-        toast.error(`No changes were saved in database for ${name}.`, "Action Incomplete");
+        toast.error(
+          `No changes were saved in database for ${name}.`,
+          "Action Incomplete",
+        );
       }
     } catch (err) {
       console.error("Toggle block error:", err);
-      toast.error(`Failed to update account status for ${name}.`, "Action Failed");
+      toast.error(
+        `Failed to update account status for ${name}.`,
+        "Action Failed",
+      );
     }
   };
 
@@ -106,14 +124,17 @@ export default function AdminUsersPage() {
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      const res = await fetch(`${serverUrl}/admin/users/${roleModalUser._id}/role`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${await getTokenClient()}`,
+      const res = await fetch(
+        `${serverUrl}/admin/users/${roleModalUser._id}/role`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${await getTokenClient()}`,
+          },
+          body: JSON.stringify({ role: newRole }),
         },
-        body: JSON.stringify({ role: newRole }),
-      });
+      );
 
       if (!res.ok) {
         throw new Error(`Server returned status ${res.status}`);
@@ -132,11 +153,17 @@ export default function AdminUsersPage() {
         );
         setRoleModalUser(null);
       } else {
-        toast.error(`No changes were saved in database for ${roleModalUser.name}.`, "Update Incomplete");
+        toast.error(
+          `No changes were saved in database for ${roleModalUser.name}.`,
+          "Update Incomplete",
+        );
       }
     } catch (err) {
       console.error("Save role error:", err);
-      toast.error(`Failed to update role for ${roleModalUser.name}.`, "Update Failed");
+      toast.error(
+        `Failed to update role for ${roleModalUser.name}.`,
+        "Update Failed",
+      );
     } finally {
       setIsUpdatingRole(false);
     }
@@ -168,7 +195,8 @@ export default function AdminUsersPage() {
             Manage Users
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-            Search, filter by role, and manage platform permissions (Block / Unblock accounts).
+            Search, filter by role, and manage platform permissions (Block /
+            Unblock accounts).
           </p>
         </div>
       </div>
@@ -194,10 +222,30 @@ export default function AdminUsersPage() {
           onChange={(e) => setRoleFilter(e.target.value)}
           className="px-4 py-3 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 text-xs font-semibold focus:outline-none"
         >
-          <option value="all" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">All Roles</option>
-          <option value="customer" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Customers Only</option>
-          <option value="vendor" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Vendors Only</option>
-          <option value="admin" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">Administrators</option>
+          <option
+            value="all"
+            className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white"
+          >
+            All Roles
+          </option>
+          <option
+            value="customer"
+            className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white"
+          >
+            Customers Only
+          </option>
+          <option
+            value="vendor"
+            className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white"
+          >
+            Vendors Only
+          </option>
+          <option
+            value="admin"
+            className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white"
+          >
+            Administrators
+          </option>
         </select>
       </div>
 
@@ -222,7 +270,8 @@ export default function AdminUsersPage() {
               No Users Found
             </h4>
             <p className="text-xs text-stone-500 mt-1 max-w-sm mx-auto">
-              When users register on PizzaHub, their accounts and roles will be listed here.
+              When users register on PizzaHub, their accounts and roles will be
+              listed here.
             </p>
           </div>
         ) : (
@@ -257,8 +306,8 @@ export default function AdminUsersPage() {
                           u.role === "admin"
                             ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
                             : u.role === "vendor"
-                            ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                            : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                              ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                              : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                         }`}
                       >
                         {u.role}
@@ -297,7 +346,9 @@ export default function AdminUsersPage() {
                   {/* Block / Unblock Button */}
                   {u.role !== "admin" && (
                     <button
-                      onClick={() => handleToggleBlock(u._id, u.name, u.isBlocked)}
+                      onClick={() =>
+                        handleToggleBlock(u._id, u.name, u.isBlocked)
+                      }
                       className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                         u.isBlocked
                           ? "bg-emerald-600 hover:bg-emerald-700 text-white"
@@ -345,7 +396,9 @@ export default function AdminUsersPage() {
                 </div>
               ) : (
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-amber-500 text-white text-xl font-bold flex items-center justify-center shrink-0">
-                  {selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : "U"}
+                  {selectedUser.name
+                    ? selectedUser.name.charAt(0).toUpperCase()
+                    : "U"}
                 </div>
               )}
               <div>
@@ -373,7 +426,9 @@ export default function AdminUsersPage() {
                 </span>
                 <span
                   className={`font-bold ${
-                    selectedUser.isBlocked ? "text-rose-600" : "text-emerald-600"
+                    selectedUser.isBlocked
+                      ? "text-rose-600"
+                      : "text-emerald-600"
                   }`}
                 >
                   {selectedUser.isBlocked ? "Blocked" : "Active"}
@@ -446,19 +501,26 @@ export default function AdminUsersPage() {
               <select
                 value={newRole}
                 onChange={(e) =>
-                  setNewRole(
-                    e.target.value as "customer" | "vendor" | "admin",
-                  )
+                  setNewRole(e.target.value as "customer" | "vendor" | "admin")
                 }
                 className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-900 dark:text-white text-xs font-semibold focus:outline-none"
               >
-                <option value="customer" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">
+                <option
+                  value="customer"
+                  className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white"
+                >
                   Customer
                 </option>
-                <option value="vendor" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">
+                <option
+                  value="vendor"
+                  className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white"
+                >
                   Vendor (Restaurant)
                 </option>
-                <option value="admin" className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white">
+                <option
+                  value="admin"
+                  className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white"
+                >
                   Administrator
                 </option>
               </select>

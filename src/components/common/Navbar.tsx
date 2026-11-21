@@ -130,7 +130,7 @@ export const Navbar: React.FC = () => {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors focus:outline-none border border-transparent hover:border-stone-200 dark:hover:border-stone-700"
+                  className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors focus:outline-none border border-transparent hover:border-stone-200 dark:hover:border-stone-700 cursor-pointer"
                   aria-expanded={dropdownOpen}
                 >
                   <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-900 border border-stone-700/60 shadow-sm shrink-0">
@@ -199,7 +199,7 @@ export const Navbar: React.FC = () => {
                       <Link
                         href="/dashboard"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-xl text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                        className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-xl text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
                       >
                         <DashboardIcon size={18} className="text-red-600" />
                         <span>Dashboard</span>
@@ -208,7 +208,7 @@ export const Navbar: React.FC = () => {
                       <Link
                         href="/profile"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-xl text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                        className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-xl text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
                       >
                         <SettingsIcon size={18} className="text-stone-500" />
                         <span>Profile Settings</span>
@@ -222,7 +222,7 @@ export const Navbar: React.FC = () => {
                           logout();
                           setDropdownOpen(false);
                         }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                       >
                         <LogOutIcon size={18} />
                         <span>Sign Out</span>

@@ -129,7 +129,7 @@ export const CategoriesSection: React.FC = () => {
             >
               <Link
                 href={`/menu?category=${encodeURIComponent(category.name)}`}
-                className="group relative rounded-3xl overflow-hidden bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-xl hover:border-amber-500/40 transition-all duration-300 flex flex-col h-full"
+                className="group relative rounded-3xl overflow-hidden bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-xl hover:border-amber-500/40 transition-all duration-300 flex flex-col h-full cursor-pointer"
               >
                 {/* Category Image Box with Soft Zoom */}
                 <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-stone-100 dark:bg-stone-800">
