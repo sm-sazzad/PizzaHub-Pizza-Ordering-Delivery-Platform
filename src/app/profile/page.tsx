@@ -279,7 +279,7 @@ export default function ProfilePage() {
 
             <p className="text-xs text-stone-500 mt-1 flex items-center gap-1.5 min-w-0">
               <MailIcon size={14} className="text-stone-400 shrink-0" />
-              <span className="break-all sm:break-normal truncate max-w-full" title={user.email}>
+              <span className="break-all sm:break-normal max-w-full" title={user.email}>
                 {user.email}
               </span>
             </p>
