@@ -137,3 +137,14 @@ select:disabled,
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Prevent native browser outline/stroke flickering on navigation links */
+aside a:focus,
+aside a:focus-visible,
+aside a:active,
+nav a:focus,
+nav a:focus-visible,
+nav a:active {
+  outline: none !important;
+  box-shadow: none !important;
+}

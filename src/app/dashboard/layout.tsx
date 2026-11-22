@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth, UserRole } from "@/context/AuthContext";
@@ -147,6 +147,11 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { user, isLoggedIn, logout } = useAuth();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [optimisticPath, setOptimisticPath] = useState<string | null>(null);
+
+  useEffect(() => {
+    setOptimisticPath(null);
+  }, [pathname]);
 
   const currentRole: UserRole = user?.role || "customer";
   const activeConfig = ROLE_CONFIGS[currentRole] || ROLE_CONFIGS.customer;
@@ -181,7 +186,7 @@ export default function DashboardLayout({
 
       {/* Sidebar for Desktop & Mobile Slide-Out */}
       <aside
-        className={`fixed md:sticky top-0 left-0 z-50 md:z-30 h-screen w-72 bg-white dark:bg-stone-900 border-r border-stone-200 dark:border-stone-800 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
+        className={`fixed md:sticky top-0 md:top-20 left-0 z-50 md:z-30 h-screen md:h-[calc(100vh-5rem)] w-72 bg-white dark:bg-stone-900 border-r border-stone-200 dark:border-stone-800 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
           mobileSidebarOpen
             ? "translate-x-0"
             : "-translate-x-full md:translate-x-0"
@@ -236,17 +241,22 @@ export default function DashboardLayout({
             </div>
             {activeConfig.navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const currentActivePath = optimisticPath || pathname;
+              const isActive = currentActivePath === item.href;
 
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  onClick={() => setMobileSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                  scroll={false}
+                  onClick={() => {
+                    setOptimisticPath(item.href);
+                    setMobileSidebarOpen(false);
+                  }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer focus:outline-none focus:ring-0 focus-visible:outline-none outline-none select-none border ${
                     isActive
-                      ? "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 shadow-xs"
-                      : "text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800/60 hover:text-stone-900 dark:hover:text-stone-100"
+                      ? "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20 shadow-xs"
+                      : "text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800/60 hover:text-stone-900 dark:hover:text-stone-100 border-transparent"
                   }`}
                 >
                   <Icon
@@ -323,7 +333,7 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 overflow-y-auto">
+      <main className="flex-1 min-w-0">
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
     </div>
